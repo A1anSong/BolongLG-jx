@@ -67,16 +67,16 @@
             </div>
           </el-form-item>
           <el-form-item>
+<!--            <el-button-->
+<!--              type="primary"-->
+<!--              style="width: 46%"-->
+<!--              size="large"-->
+<!--              @click="checkInit"-->
+<!--            >前往初始化</el-button>-->
             <el-button
               type="primary"
-              style="width: 46%"
               size="large"
-              @click="checkInit"
-            >前往初始化</el-button>
-            <el-button
-              type="primary"
-              size="large"
-              style="width: 46%; margin-left: 8%"
+              style="width: 100%"
               @click="submitForm"
             >登 录</el-button>
           </el-form-item>
@@ -164,8 +164,8 @@ const changeLock = () => {
 const loginForm = ref(null)
 const picPath = ref('')
 const loginFormData = reactive({
-  username: 'admin',
-  password: '123456',
+  username: '',
+  password: '',
   captcha: '',
   captchaId: '',
 })
