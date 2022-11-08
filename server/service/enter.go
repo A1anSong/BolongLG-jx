@@ -7,9 +7,10 @@ import (
 )
 
 type ServiceGroup struct {
-	SystemServiceGroup  system.ServiceGroup
-	ExampleServiceGroup example.ServiceGroup
-	LgjxServiceGroup    lgjx.ServiceGroup
+	SystemServiceGroup   system.ServiceGroup
+	ExampleServiceGroup  example.ServiceGroup
+	LgjxServiceGroup     lgjx.ServiceGroup
+	LgjxTestServiceGroup lgjx.TestServiceGroup
 }
 
 var ServiceGroupApp = new(ServiceGroup)

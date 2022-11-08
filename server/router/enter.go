@@ -7,9 +7,10 @@ import (
 )
 
 type RouterGroup struct {
-	System  system.RouterGroup
-	Example example.RouterGroup
-	Lgjx    lgjx.RouterGroup
+	System   system.RouterGroup
+	Example  example.RouterGroup
+	Lgjx     lgjx.RouterGroup
+	LgjxTest lgjx.TestRouterGroup
 }
 
 var RouterGroupApp = new(RouterGroup)
