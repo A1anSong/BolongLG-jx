@@ -1,4 +1,5 @@
-# qm-plus-vue-page
+# 开发备注
+`node version v16.17.0`
 
 ## Project setup
 ```
