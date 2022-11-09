@@ -5,6 +5,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
+	"gorm.io/gorm/clause"
 )
 
 type OrderService struct {
@@ -62,6 +63,6 @@ func (orderService *OrderService) GetOrderInfoList(info lgjxReq.OrderSearch) (li
 		return
 	}
 
-	err = db.Limit(limit).Offset(offset).Find(&orders).Error
+	err = db.Limit(limit).Preload(clause.Associations).Order("created_at").Offset(offset).Find(&orders).Error
 	return orders, total, err
 }
