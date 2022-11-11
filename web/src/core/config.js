@@ -3,7 +3,7 @@
  */
 
 const config = {
-  appName: 'JxBolong',
+  appName: '博珑科技',
   appLogo: 'https://www.gin-vue-admin.com/img/logo.png',
   showViteLogo: true
 }
