@@ -73,10 +73,11 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Logout{},
 		lgjx.Invoice{},
 		lgjx.InvoiceApply{},
+		lgjx.Project{},
 	)
 
 	if err != nil {
-		global.GVA_LOG.Error("register table failed", zap.Error(err))
+		global.GVA_LOG.Error("lg-jx register table failed", zap.Error(err))
 		os.Exit(0)
 	}
 
@@ -92,10 +93,11 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Logout{},
 		lgjx.Invoice{},
 		lgjx.InvoiceApply{},
+		lgjx.Project{},
 	)
 
 	if err != nil {
-		global.GVA_LOG.Error("register table failed", zap.Error(err))
+		global.GVA_LOG.Error("lg-jx-test register table failed", zap.Error(err))
 		os.Exit(0)
 	}
 	global.GVA_LOG.Info("register table success")

@@ -63,6 +63,6 @@ func (orderService *OrderService) GetOrderInfoList(info lgjxReq.OrderSearch) (li
 		return
 	}
 
-	err = db.Limit(limit).Preload(clause.Associations).Order("created_at").Offset(offset).Find(&orders).Error
+	err = db.Limit(limit).Preload(clause.Associations).Order("created_at desc").Offset(offset).Find(&orders).Error
 	return orders, total, err
 }
