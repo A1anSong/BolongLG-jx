@@ -14,79 +14,116 @@
       </el-form>
     </div>
     <div class="gva-table-box">
-<!--      <div class="gva-btn-list">-->
-<!--        <el-button size="small" type="primary" icon="plus" @click="openDialog">新增</el-button>-->
-<!--        <el-popover v-model:visible="deleteVisible" placement="top" width="160">-->
-<!--          <p>确定要删除吗？</p>-->
-<!--          <div style="text-align: right; margin-top: 8px;">-->
-<!--            <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>-->
-<!--            <el-button size="small" type="primary" @click="onDelete">确定</el-button>-->
-<!--          </div>-->
-<!--          <template #reference>-->
-<!--            <el-button icon="delete" size="small" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>-->
-<!--          </template>-->
-<!--        </el-popover>-->
-<!--      </div>-->
+      <!--      <div class="gva-btn-list">-->
+      <!--        <el-button size="small" type="primary" icon="plus" @click="openDialog">新增</el-button>-->
+      <!--        <el-popover v-model:visible="deleteVisible" placement="top" width="160">-->
+      <!--          <p>确定要删除吗？</p>-->
+      <!--          <div style="text-align: right; margin-top: 8px;">-->
+      <!--            <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>-->
+      <!--            <el-button size="small" type="primary" @click="onDelete">确定</el-button>-->
+      <!--          </div>-->
+      <!--          <template #reference>-->
+      <!--            <el-button icon="delete" size="small" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>-->
+      <!--          </template>-->
+      <!--        </el-popover>-->
+      <!--      </div>-->
       <el-table
-          ref="multipleTable"
-          style="width: 100%"
-          tooltip-effect="dark"
-          :data="tableData"
-          row-key="ID"
-          @selection-change="handleSelectionChange"
+        ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :data="tableData"
+        row-key="ID"
+        border
+        size="small"
+        table-layout="auto"
+        @selection-change="handleSelectionChange"
       >
-<!--        <el-table-column type="selection" width="55" />-->
-        <el-table-column align="left" label="日期" width="180">
-          <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
+        <!--        <el-table-column type="selection" width="55" />-->
+        <!--        <el-table-column align="left" label="日期" width="180">-->
+        <!--          <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>-->
+        <!--        </el-table-column>-->
+        <!--        <el-table-column align="left" label="订单编号" prop="orderNo" />-->
+        <el-table-column align="center" label="订单编号" prop="apply.applyNo" />
+        <el-table-column align="center" label="标段名称" prop="apply.projectName" />
+        <!--        <el-table-column align="left" label="申请时间" prop="apply.CreatedAt" />-->
+        <el-table-column align="center" label="申请时间">
+          <template #default="scope">{{ date(scope.row.apply.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="订单编号" prop="orderNo" min-width="120" />
-        <el-table-column align="left" label="申请编号" prop="apply.applyNo" min-width="120" />
-        <el-table-column align="left" label="保函产品编号" prop="apply.productNo" min-width="120" />
-        <el-table-column align="left" label="保函产品类型" min-width="120">
-          <template #default="scope">{{ scope.row.apply.productType==1?"直开式":"分离式" }}</template>
+        <el-table-column align="center" label="员工信息">
+          <el-table-column align="center" label="工号" prop="employeeNo" />
+          <el-table-column align="center" label="业务员" prop="employeeNo" />
         </el-table-column>
-        <el-table-column align="left" label="保函产品费率" prop="apply.productRate" min-width="120" />
-        <el-table-column align="left" label="保函费用" prop="apply.elogAmount" min-width="120" />
-        <el-table-column align="left" label="项目标识" prop="apply.projectGuid" min-width="120" />
-        <el-table-column align="left" label="项目名称" prop="apply.projectName" min-width="120" />
-        <el-table-column align="left" label="项目编号" prop="apply.projectNo" min-width="120" />
-        <el-table-column align="left" label="担保金额" prop="apply.tenderDeposit" min-width="120" />
-        <el-table-column align="left" label="保证金开始缴纳时间" prop="apply.depositStartDate" min-width="120" />
-        <el-table-column align="left" label="保证金截止缴纳时间" prop="apply.depositEndDate" min-width="120" />
-        <el-table-column align="left" label="开标时间" prop="apply.openBeginDate" min-width="120" />
-        <el-table-column align="left" label="保函格式编号" prop="apply.elogTemplateNo" min-width="120" />
-        <el-table-column align="left" label="保函格式名称" prop="apply.elogTemplateName" min-width="120" />
-        <el-table-column align="left" label="受益方名称" prop="apply.insuredName" min-width="120" />
-        <el-table-column align="left" label="受益方社会信用代码" prop="apply.insuredCreditCode" min-width="120" />
-        <el-table-column align="left" label="受益方地址" prop="apply.insuredAddress" min-width="120" />
-        <el-table-column align="left" label="投保方名称" prop="apply.insureName" min-width="120" />
-        <el-table-column align="left" label="投保方社会信用代码" prop="apply.insureCreditCode" min-width="120" />
-        <el-table-column align="left" label="投保方法人" prop="apply.insureLegalName" min-width="120" />
-        <el-table-column align="left" label="投保方社会信用代码" prop="apply.insureLegalIdCard" min-width="120" />
-        <el-table-column align="left" label="投保方地址" prop="apply.insureAddress" min-width="120" />
-        <el-table-column align="left" label="经办人" prop="apply.applicantName" min-width="120" />
-        <el-table-column align="left" label="经办人身份证" prop="apply.applicantIdCard" min-width="120" />
-        <el-table-column align="left" label="经办人电话" prop="apply.applicantTel" min-width="120" />
-        <el-table-column align="left" label="附件信息" prop="apply.attachInfo" min-width="120" />
-        <el-table-column align="left" label="付款信息" min-width="120">
-          <template #default="scope">{{ scope.row.pay!=null?"已付款"+scope.row.pay.payAmount+"元":"未付款" }}</template>
+        <el-table-column align="center" label="申请企业" prop="apply.insureName" />
+        <!--        <el-table-column align="left" label="投保方社会信用代码" prop="apply.insureCreditCode" />-->
+        <!--        <el-table-column align="left" label="投保方法人" prop="apply.insureLegalName" />-->
+        <!--        <el-table-column align="left" label="投保方社会信用代码" prop="apply.insureLegalIdCard" />-->
+        <!--        <el-table-column align="left" label="投保方地址" prop="apply.insureAddress" />-->
+        <!--        <el-table-column align="left" label="经办人" prop="apply.applicantName" />-->
+        <!--        <el-table-column align="left" label="经办人身份证" prop="apply.applicantIdCard" />-->
+        <!--        <el-table-column align="left" label="经办人电话" prop="apply.applicantTel" />-->
+        <el-table-column align="center" label="标段编号" prop="apply.projectNo" />
+        <!--        <el-table-column align="left" label="保函产品费率" prop="apply.productRate" />-->
+        <!--        <el-table-column align="left" label="保函费用" prop="apply.elogAmount" />-->
+        <!--        <el-table-column align="left" label="项目标识" prop="apply.projectGuid" />-->
+        <el-table-column align="center" label="受益方名称" prop="apply.insuredName" />
+        <!--        <el-table-column align="left" label="受益方社会信用代码" prop="apply.insuredCreditCode" />-->
+        <!--        <el-table-column align="left" label="受益方地址" prop="apply.insuredAddress" />-->
+        <!--        <el-table-column align="left" label="担保金额" prop="apply.tenderDeposit" />-->
+        <el-table-column align="center" label="担保金额" min-width="120">
+          <template #default="scope">{{ amount(scope.row.apply.tenderDeposit) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="按钮组">
+        <el-table-column align="center" label="所属市" prop="project" />
+        <!--        <el-table-column align="left" label="保证金开始缴纳时间" prop="apply.depositStartDate" />-->
+        <!--        <el-table-column align="left" label="保证金截止缴纳时间" prop="apply.depositEndDate" />-->
+        <el-table-column align="center" label="开标时间" prop="apply.openBeginDate" />
+        <el-table-column align="center" label="审核状态" min-width="120">
+          <template #default="scope">{{ auditStatus(scope.row.apply.auditStatus) }}</template>
+        </el-table-column>
+        <el-table-column align="center" label="审核时间" prop="apply.openBeginDate" />
+        <el-table-column align="center" label="付款信息" min-width="120">
+          <template #default="scope">{{ scope.row.pay != null ? "已付款" : "未付款" }}</template>
+        </el-table-column>
+        <!--        <el-table-column align="left" label="付款金额" prop="pay.payAmount" />-->
+        <el-table-column align="center" label="付款金额" min-width="120">
+          <template #default="scope">{{ scope.row.pay === null ? '' : amount(scope.row.pay.payAmount) }}</template>
+        </el-table-column>
+        <el-table-column align="center" label="付款时间" prop="pay.payTime" />
+        <el-table-column align="center" label="开函时间" min-width="120">
+          <template #default="scope">{{ scope.row.letter === null ? '' : date(scope.row.letter.CreatedAt) }}</template>
+        </el-table-column>
+        <el-table-column align="center" label="开函状态" min-width="120">
+          <template #default="scope">{{ scope.row.letter === null ? '未开函' : '已开函' }}</template>
+        </el-table-column>
+        <!--        <el-table-column align="left" label="保函格式编号" prop="apply.elogTemplateNo" />-->
+        <el-table-column align="center" label="保函格式名称" prop="apply.elogTemplateName" />
+        <el-table-column align="center" label="来源" min-width="120">
+          <template #default="scope">{{ productType(scope.row.apply.productType) }}</template>
+        </el-table-column>
+        <!--        <el-table-column align="left" label="附件信息" prop="apply.attachInfo" />-->
+        <el-table-column align="center" label="操作" min-width="240" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link icon="edit" size="small" class="table-button" @click="updateOrderFunc(scope.row)">变更</el-button>
+            <el-button
+              type="primary"
+              link
+              icon="edit"
+              size="small"
+              class="table-button"
+              @click="updateOrderFunc(scope.row)"
+            >变更
+            </el-button>
             <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <div class="gva-pagination">
         <el-pagination
-            layout="total, sizes, prev, pager, next, jumper"
-            :current-page="page"
-            :page-size="pageSize"
-            :page-sizes="[10, 30, 50, 100]"
-            :total="total"
-            @current-change="handleCurrentChange"
-            @size-change="handleSizeChange"
+          layout="total, sizes, prev, pager, next, jumper"
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 30, 50, 100]"
+          :total="total"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
@@ -127,14 +164,18 @@ import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/form
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, reactive } from 'vue'
 
+import { date } from '@/utils/jxlg/date'
+import { auditStatus } from '@/utils/jxlg/auditStatus'
+import { productType } from '@/utils/jxlg/productType'
+import { amount } from '@/utils/jxlg/amount'
+
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
   orderNo: '',
 })
 
 // 验证规则
-const rule = reactive({
-})
+const rule = reactive({})
 
 const elFormRef = ref()
 

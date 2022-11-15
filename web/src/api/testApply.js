@@ -2,7 +2,7 @@ import service from '@/utils/request'
 
 export const createApply = (data) => {
   return service({
-    url: '/testAppy/createApply',
+    url: '/testApply/createApply',
     method: 'post',
     data
   })
@@ -10,7 +10,7 @@ export const createApply = (data) => {
 
 export const deleteApply = (data) => {
   return service({
-    url: '/testAppy/deleteApply',
+    url: '/testApply/deleteApply',
     method: 'delete',
     data
   })
@@ -18,7 +18,7 @@ export const deleteApply = (data) => {
 
 export const deleteApplyByIds = (data) => {
   return service({
-    url: '/testAppy/deleteApplyByIds',
+    url: '/testApply/deleteApplyByIds',
     method: 'delete',
     data
   })
@@ -26,7 +26,7 @@ export const deleteApplyByIds = (data) => {
 
 export const updateApply = (data) => {
   return service({
-    url: '/testAppy/updateApply',
+    url: '/testApply/updateApply',
     method: 'put',
     data
   })
@@ -34,7 +34,7 @@ export const updateApply = (data) => {
 
 export const findApply = (params) => {
   return service({
-    url: '/testAppy/findApply',
+    url: '/testApply/findApply',
     method: 'get',
     params
   })
@@ -42,7 +42,7 @@ export const findApply = (params) => {
 
 export const getApplyList = (params) => {
   return service({
-    url: '/testAppy/getApplyList',
+    url: '/testApply/getApplyList',
     method: 'get',
     params
   })
