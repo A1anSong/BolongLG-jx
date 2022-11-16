@@ -55,9 +55,9 @@ func (orderService *OrderService) GetOrderInfoList(info lgjxReq.OrderSearch) (li
 	db := global.MustGetGlobalDBByDBName("lg-jx").Model(&lgjx.Order{})
 	var orders []lgjx.Order
 	// 如果有条件搜索 下方会自动创建搜索语句
-	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
-		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
-	}
+	//if info.CreatedAt != nil {
+	//	db = db.Where("created_at BETWEEN ? AND ?", info.CreatedAt[0], info.CreatedAt[1])
+	//}
 	err = db.Count(&total).Error
 	if err != nil {
 		return

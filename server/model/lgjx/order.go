@@ -25,6 +25,8 @@ type Order struct {
 	Logout    *Logout  `json:"logout" form:"logout"`
 	InvoiceID *uint    `json:"-" form:"-"`
 	Invoice   *Invoice `json:"invoice" form:"invoice"`
+	ProjectID *uint    `json:"-" form:"-"`
+	Project   *Project `json:"project" form:"project"`
 }
 
 // TableName Order 表名

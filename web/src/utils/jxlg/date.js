@@ -3,5 +3,5 @@ export const date = (date) => {
   return dateUTC.getFullYear() +
         '-' + dateUTC.getMonth() +
         '-' + dateUTC.getDate() +
-        ' ' + dateUTC.toLocaleTimeString()
+        ' ' + dateUTC.toLocaleTimeString('chinese', { hour12: false })
 }

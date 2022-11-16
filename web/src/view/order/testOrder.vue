@@ -2,10 +2,74 @@
   <div>
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
-        <el-form-item label="创建时间">
-          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间" />
-          —
-          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间" />
+        <el-form-item label="申请编号">
+          <el-input v-model="searchInfo.applyNo" placeholder="搜索条件" />
+        </el-form-item>
+        <el-form-item label="标段名称">
+          <el-input v-model="searchInfo.projectName" placeholder="搜索条件" />
+        </el-form-item>
+        <el-form-item label="申请企业">
+          <el-input v-model="searchInfo.insureName" placeholder="搜索条件" />
+        </el-form-item>
+        <el-form-item label="保函格式">
+          <el-select v-model="searchInfo.elogTemplateName">
+            <el-option
+              v-for="item in 10"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="保函编号">
+          <el-input v-model="searchInfo.elogNo" placeholder="搜索条件" />
+        </el-form-item>
+        <el-form-item label="订单状态">
+          <el-select v-model="searchInfo.orderStatus">
+            <el-option
+              v-for="item in 10"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="审核状态">
+          <el-select v-model="searchInfo.auditStatus">
+            <el-option
+              v-for="item in 10"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="开标时间">
+          <el-date-picker
+            v-model="searchInfo.openBeginDate"
+            type="daterange"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+          />
+        </el-form-item>
+        <el-form-item label="申请时间">
+          <el-date-picker
+            v-model="searchInfo.applyCreatedAt"
+            type="daterange"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+          />
+        </el-form-item>
+        <el-form-item label="开函时间">
+          <el-date-picker
+            v-model="searchInfo.letterCreatedAt"
+            type="daterange"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+          />
+        </el-form-item>
+        <el-form-item label="担保期限">
+          <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" />
         </el-form-item>
         <el-form-item>
           <el-button size="small" type="primary" icon="search" @click="onSubmit">查询</el-button>
@@ -30,90 +94,272 @@
       <el-table
         ref="multipleTable"
         style="width: 100%"
-        tooltip-effect="dark"
+        tooltip-effect="light"
         :data="tableData"
         row-key="ID"
         border
         size="small"
-        table-layout="auto"
+        table-layout="fixed"
         @selection-change="handleSelectionChange"
       >
-        <!--        <el-table-column type="selection" width="55" />-->
-        <!--        <el-table-column align="left" label="日期" width="180">-->
-        <!--          <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>-->
-        <!--        </el-table-column>-->
-        <!--        <el-table-column align="left" label="订单编号" prop="orderNo" />-->
-        <el-table-column align="center" label="订单编号" prop="apply.applyNo" />
-        <el-table-column align="center" label="标段名称" prop="apply.projectName" />
-        <!--        <el-table-column align="left" label="申请时间" prop="apply.CreatedAt" />-->
-        <el-table-column align="center" label="申请时间">
-          <template #default="scope">{{ date(scope.row.apply.CreatedAt) }}</template>
-        </el-table-column>
-        <el-table-column align="center" label="员工信息">
-          <el-table-column align="center" label="工号" prop="employeeNo" />
-          <el-table-column align="center" label="业务员" prop="employeeNo" />
-        </el-table-column>
-        <el-table-column align="center" label="申请企业" prop="apply.insureName" />
-        <!--        <el-table-column align="left" label="投保方社会信用代码" prop="apply.insureCreditCode" />-->
-        <!--        <el-table-column align="left" label="投保方法人" prop="apply.insureLegalName" />-->
-        <!--        <el-table-column align="left" label="投保方社会信用代码" prop="apply.insureLegalIdCard" />-->
-        <!--        <el-table-column align="left" label="投保方地址" prop="apply.insureAddress" />-->
-        <!--        <el-table-column align="left" label="经办人" prop="apply.applicantName" />-->
-        <!--        <el-table-column align="left" label="经办人身份证" prop="apply.applicantIdCard" />-->
-        <!--        <el-table-column align="left" label="经办人电话" prop="apply.applicantTel" />-->
-        <el-table-column align="center" label="标段编号" prop="apply.projectNo" />
-        <!--        <el-table-column align="left" label="保函产品费率" prop="apply.productRate" />-->
-        <!--        <el-table-column align="left" label="保函费用" prop="apply.elogAmount" />-->
-        <!--        <el-table-column align="left" label="项目标识" prop="apply.projectGuid" />-->
-        <el-table-column align="center" label="受益方名称" prop="apply.insuredName" />
-        <!--        <el-table-column align="left" label="受益方社会信用代码" prop="apply.insuredCreditCode" />-->
-        <!--        <el-table-column align="left" label="受益方地址" prop="apply.insuredAddress" />-->
-        <!--        <el-table-column align="left" label="担保金额" prop="apply.tenderDeposit" />-->
-        <el-table-column align="center" label="担保金额" min-width="120">
-          <template #default="scope">{{ amount(scope.row.apply.tenderDeposit) }}</template>
-        </el-table-column>
-        <el-table-column align="center" label="所属市" prop="project" />
-        <!--        <el-table-column align="left" label="保证金开始缴纳时间" prop="apply.depositStartDate" />-->
-        <!--        <el-table-column align="left" label="保证金截止缴纳时间" prop="apply.depositEndDate" />-->
-        <el-table-column align="center" label="开标时间" prop="apply.openBeginDate" />
-        <el-table-column align="center" label="审核状态" min-width="120">
-          <template #default="scope">{{ auditStatus(scope.row.apply.auditStatus) }}</template>
-        </el-table-column>
-        <el-table-column align="center" label="审核时间" prop="apply.openBeginDate" />
-        <el-table-column align="center" label="付款信息" min-width="120">
-          <template #default="scope">{{ scope.row.pay != null ? "已付款" : "未付款" }}</template>
-        </el-table-column>
-        <!--        <el-table-column align="left" label="付款金额" prop="pay.payAmount" />-->
-        <el-table-column align="center" label="付款金额" min-width="120">
-          <template #default="scope">{{ scope.row.pay === null ? '' : amount(scope.row.pay.payAmount) }}</template>
-        </el-table-column>
-        <el-table-column align="center" label="付款时间" prop="pay.payTime" />
-        <el-table-column align="center" label="开函时间" min-width="120">
-          <template #default="scope">{{ scope.row.letter === null ? '' : date(scope.row.letter.CreatedAt) }}</template>
-        </el-table-column>
-        <el-table-column align="center" label="开函状态" min-width="120">
-          <template #default="scope">{{ scope.row.letter === null ? '未开函' : '已开函' }}</template>
-        </el-table-column>
-        <!--        <el-table-column align="left" label="保函格式编号" prop="apply.elogTemplateNo" />-->
-        <el-table-column align="center" label="保函格式名称" prop="apply.elogTemplateName" />
-        <el-table-column align="center" label="来源" min-width="120">
-          <template #default="scope">{{ productType(scope.row.apply.productType) }}</template>
-        </el-table-column>
-        <!--        <el-table-column align="left" label="附件信息" prop="apply.attachInfo" />-->
-        <el-table-column align="center" label="操作" min-width="240" fixed="right">
+        <el-table-column type="expand">
           <template #default="scope">
-            <el-button
-              type="primary"
-              link
-              icon="edit"
-              size="small"
-              class="table-button"
-              @click="updateOrderFunc(scope.row)"
-            >变更
-            </el-button>
-            <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
+            <div>
+              <el-row :gutter="20">
+                <el-col :xs="24" :sm="12">
+                  <el-descriptions
+                    style="margin: 10px;"
+                    title="订单信息"
+                    size="small"
+                    :column="2"
+                    border
+                  >
+                    <el-descriptions-item label="申请编号">{{ scope.row.apply.applyNo }}</el-descriptions-item>
+                    <el-descriptions-item label="产品类型">{{
+                      productType(scope.row.apply.productType)
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="标段名称">{{ scope.row.apply.projectName }}</el-descriptions-item>
+                    <el-descriptions-item label="标段编号">{{ scope.row.apply.projectNo }}</el-descriptions-item>
+                    <el-descriptions-item label="担保金额">{{
+                      amount(scope.row.apply.tenderDeposit)
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="保证金缴纳开始时间">{{
+                      scope.row.apply.depositStartDate
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="保证金缴纳截止时间">{{
+                      scope.row.apply.depositEndDate
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="开标时间">{{ scope.row.apply.openBeginDate }}</el-descriptions-item>
+                    <el-descriptions-item label="保函格式编号">{{
+                      scope.row.apply.elogTemplateNo
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="保函格式名称">{{
+                      scope.row.apply.elogTemplateName
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="所属市">{{
+                      scope.row.project != null && scope.row.project.city !== undefined ? scope.row.project.city : ''
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="所属县">{{
+                      scope.row.project != null && scope.row.project.county !== undefined ? scope.row.project.county : ''
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="受益人名称">{{ scope.row.apply.insuredName }}</el-descriptions-item>
+                    <el-descriptions-item label="受益人社会信用代码">{{
+                      scope.row.apply.insuredCreditCode
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="受益人地址">
+                      {{ scope.row.apply.insuredAddress != null ? scope.row.apply.insuredAddress : '' }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="投保方名称">{{ scope.row.apply.insureName }}</el-descriptions-item>
+                    <el-descriptions-item label="投保方社会信用代码">{{
+                      scope.row.apply.insureCreditCode
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="投保方法人姓名">{{
+                      scope.row.apply.insureLegalName
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="投保方法人身份证号">{{
+                      scope.row.apply.insureLegalIdCard
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="投保方地址">{{ scope.row.apply.insureAddress }}</el-descriptions-item>
+                    <el-descriptions-item label="经办人姓名">{{ scope.row.apply.applicantName }}</el-descriptions-item>
+                    <el-descriptions-item label="经办人身份证号">{{
+                      scope.row.apply.applicantIdCard
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="经办人联系电话">{{
+                      scope.row.apply.applicantTel
+                    }}
+                    </el-descriptions-item>
+                  </el-descriptions>
+                </el-col>
+                <el-col :xs="24" :sm="12">
+                  <el-descriptions
+                    v-if="scope.row.apply.attachInfo"
+                    style="margin: 10px;"
+                    title="附件信息"
+                    size="small"
+                    :column="3"
+                    border
+                  >
+                    <template v-for="attachInfo in JSON.parse(scope.row.apply.attachInfo)">
+                      <el-descriptions-item :label="attachType(attachInfo.attachType)">
+                        <el-link type="primary"><a
+                          :href="attachInfo.attachUrl"
+                          target="_blank"
+                        >{{ attachInfo.attachName }}</a>
+                        </el-link>
+                      </el-descriptions-item>
+                    </template>
+                  </el-descriptions>
+                  <el-descriptions
+                    v-if="scope.row.pay"
+                    style="margin: 10px;"
+                    title="支付信息"
+                    size="small"
+                    :column="1"
+                    border
+                  >
+                    <el-descriptions-item label="支付编号" width="50px">{{ scope.row.pay.payNo }}</el-descriptions-item>
+                    <el-descriptions-item label="支付支付流水号">{{ scope.row.pay.payTransNo }}</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions
+                    v-if="orderStatus(scope.row)==='已开'"
+                    style="margin: 10px;"
+                    title="保函信息"
+                    size="small"
+                    :column="1"
+                    border
+                  >
+                    <el-descriptions-item label="保函编号" width="50px">{{
+                      scope.row.letter.elogNo
+                    }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="保函文件">{{ scope.row.letter.elogUrl }}</el-descriptions-item>
+                    <el-descriptions-item label="担保期限（天）">{{ scope.row.letter.insureDay }}</el-descriptions-item>
+                    <el-descriptions-item label="验真码">{{ scope.row.letter.validateCode }}</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions
+                    v-if="orderStatus(scope.row)==='延期'"
+                    style="margin: 10px;"
+                    title="延期信息"
+                    size="small"
+                    :column="1"
+                    border
+                  >
+                    <el-descriptions-item label="延期" width="50px">延期</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions
+                    v-if="orderStatus(scope.row)==='退函'"
+                    style="margin: 10px;"
+                    title="退函信息"
+                    size="small"
+                    :column="1"
+                    border
+                  >
+                    <el-descriptions-item label="退函" width="50px">退函</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions
+                    v-if="orderStatus(scope.row)==='理赔'"
+                    style="margin: 10px;"
+                    title="理赔信息"
+                    size="small"
+                    :column="1"
+                    border
+                  >
+                    <el-descriptions-item label="理赔" width="50px">理赔</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions
+                    v-if="orderStatus(scope.row)==='销函'"
+                    style="margin: 10px;"
+                    title="销函信息"
+                    size="small"
+                    :column="1"
+                    border
+                  >
+                    <el-descriptions-item label="销函" width="50px">销函</el-descriptions-item>
+                  </el-descriptions>
+                </el-col>
+              </el-row>
+            </div>
           </template>
         </el-table-column>
+        <el-table-column align="center" label="申请编号" prop="apply.applyNo" min-width="160px" />
+        <el-table-column align="center" label="来源" min-width="80px">
+          <template #default="scope">{{ productType(scope.row.apply.productType) }}</template>
+        </el-table-column>
+        <el-table-column align="center" label="标段信息">
+          <el-table-column align="center" label="标段名称" prop="apply.projectName" min-width="300px" />
+          <el-table-column align="center" label="开标时间" prop="apply.openBeginDate" min-width="160px" />
+          <el-table-column align="center" label="标段编号" prop="apply.projectNo" min-width="160px" />
+          <el-table-column align="center" label="受益方名称" prop="apply.insuredName" min-width="280px" />
+          <el-table-column align="center" label="担保金额" min-width="120px">
+            <template #default="scope">{{ amount(scope.row.apply.tenderDeposit) }}</template>
+          </el-table-column>
+          <el-table-column align="center" label="所属市" prop="project" min-width="120px" />
+          <el-table-column align="center" label="保函格式名称" prop="apply.elogTemplateName" min-width="120px" />
+        </el-table-column>
+        <el-table-column align="center" label="申请人信息">
+          <el-table-column align="center" label="申请企业" prop="apply.insureName" min-width="280px" />
+          <el-table-column align="center" label="申请时间" min-width="160px">
+            <template #default="scope">{{ date(scope.row.apply.CreatedAt) }}</template>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column align="center" label="订单信息">
+          <el-table-column align="center" label="审核时间" prop="apply.openBeginDate" min-width="160px" />
+          <el-table-column align="center" label="审核状态" min-width="80px">
+            <template #default="scope">
+              <el-tag
+                :type="scope.row.revoke!=null?'info':auditType(scope.row.apply.auditStatus)"
+                effect="dark"
+                round
+              >
+                {{ scope.row.revoke != null ? '已撤' : auditStatus(scope.row.apply.auditStatus) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="付款时间" prop="pay.payTime" min-width="160px" />
+          <el-table-column align="center" label="付款金额" min-width="120px">
+            <template #default="scope">{{ scope.row.pay != null ? amount(scope.row.pay.payAmount) : '' }}</template>
+          </el-table-column>
+          <el-table-column align="center" label="付款状态" min-width="80px">
+            <template #default="scope">
+              <el-tag
+                :type="scope.row.pay != null ? 'success' : 'info'"
+                effect="dark"
+                round
+              >
+
+                {{ scope.row.pay != null ? "已付" : "未付" }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="开函时间" min-width="160px">
+            <template #default="scope">{{
+              scope.row.letter !== null ? date(scope.row.letter.CreatedAt) : ''
+            }}
+            </template>
+          </el-table-column>
+          <el-table-column align="center" label="订单状态" min-width="80px">
+            <template #default="scope">
+              <el-tag
+                :type="orderStatusType(scope.row)"
+                effect="dark"
+                round
+              >
+                {{ orderStatus(scope.row) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column align="center" label="推荐人">
+          <el-table-column align="center" label="工号" prop="employeeNo" min-width="120px" />
+          <el-table-column align="center" label="业务员" prop="employeeNo" min-width="120px" />
+        </el-table-column>
+        <!--        <el-table-column align="left" label="操作" min-width="240" fixed="right">-->
+        <!--          <template #default="scope">-->
+        <!--            <el-button-->
+        <!--              type="primary"-->
+        <!--              link-->
+        <!--              icon="edit"-->
+        <!--              size="small"-->
+        <!--              class="table-button"-->
+        <!--              @click="updateOrderFunc(scope.row)"-->
+        <!--            >变更-->
+        <!--            </el-button>-->
+        <!--            <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>-->
+        <!--          </template>-->
+        <!--        </el-table-column>-->
       </el-table>
       <div class="gva-pagination">
         <el-pagination
@@ -165,9 +411,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, reactive } from 'vue'
 
 import { date } from '@/utils/jxlg/date'
-import { auditStatus } from '@/utils/jxlg/auditStatus'
+import { auditStatus, auditType } from '@/utils/jxlg/auditStatus'
 import { productType } from '@/utils/jxlg/productType'
 import { amount } from '@/utils/jxlg/amount'
+import { attachType } from '@/utils/jxlg/attachType'
+import { orderStatus, orderStatusType } from '@/utils/jxlg/orderStatus'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({

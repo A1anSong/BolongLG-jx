@@ -20,7 +20,7 @@ type Refund struct {
 	ApplicantTel     *string  `json:"applicantTel" form:"applicantTel" gorm:"type:varchar(11);"`
 	Reason           *string  `json:"reason" form:"reason" gorm:"type:text;"`
 	AttachInfo       *string  `json:"attachInfo" form:"attachInfo" gorm:"type:text;"`
-	AuditStatue      *int64   `json:"auditStatue" form:"auditStatue"`
+	AuditStatus      *int64   `json:"auditStatus" form:"auditStatus"`
 	AuditOpinion     *string  `json:"auditOpinion" form:"auditOpinion" gorm:"type:varchar(512);"`
 	AuditDate        *string  `json:"auditDate" form:"auditDate" gorm:"type:varchar(19);"`
 	PayAmount        *float64 `json:"payAmount" form:"payAmount"`
