@@ -47,3 +47,11 @@ export const getOrderList = (params) => {
     params
   })
 }
+
+export const getOrderStatisticData = (params) => {
+  return service({
+    url: '/testOrder/getOrderStatisticData',
+    method: 'get',
+    params
+  })
+}

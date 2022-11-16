@@ -9,7 +9,7 @@ import (
 type Claim struct {
 	global.GVA_MODEL
 	OrderID           *uint    `json:"orderID" form:"orderID"`
-	Order             *Order   `json:"order" form:"order"`
+	Order             *Order   `json:"-" form:"-"`
 	OrderNo           *string  `json:"orderNo" form:"orderNo" gorm:"type:varchar(64);"`
 	ApplyNo           *string  `json:"applyNo" form:"applyNo" gorm:"type:varchar(64);"`
 	ElogNo            *string  `json:"elogNo" form:"elogNo" gorm:"type:varchar(128);"`

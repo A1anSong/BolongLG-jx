@@ -11,19 +11,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type TestOrderApi struct {
+type TestSettingApi struct {
 }
 
-var testOrderService = service.ServiceGroupApp.LgjxTestServiceGroup.TestOrderService
+var testSettingService = service.ServiceGroupApp.LgjxTestServiceGroup.TestSettingService
 
-func (testTestOrderApi *TestOrderApi) CreateOrder(c *gin.Context) {
-	var order lgjx.Order
-	err := c.ShouldBindJSON(&order)
+func (testSettingApi *TestSettingApi) CreateSetting(c *gin.Context) {
+	var setting lgjx.Setting
+	err := c.ShouldBindJSON(&setting)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := testOrderService.CreateOrder(order); err != nil {
+	if err := testSettingService.CreateSetting(setting); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
 	} else {
@@ -31,14 +31,14 @@ func (testTestOrderApi *TestOrderApi) CreateOrder(c *gin.Context) {
 	}
 }
 
-func (testTestOrderApi *TestOrderApi) DeleteOrder(c *gin.Context) {
-	var order lgjx.Order
-	err := c.ShouldBindJSON(&order)
+func (testSettingApi *TestSettingApi) DeleteSetting(c *gin.Context) {
+	var setting lgjx.Setting
+	err := c.ShouldBindJSON(&setting)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := testOrderService.DeleteOrder(order); err != nil {
+	if err := testSettingService.DeleteSetting(setting); err != nil {
 		global.GVA_LOG.Error("删除失败!", zap.Error(err))
 		response.FailWithMessage("删除失败", c)
 	} else {
@@ -46,14 +46,14 @@ func (testTestOrderApi *TestOrderApi) DeleteOrder(c *gin.Context) {
 	}
 }
 
-func (testTestOrderApi *TestOrderApi) DeleteOrderByIds(c *gin.Context) {
+func (testSettingApi *TestSettingApi) DeleteSettingByIds(c *gin.Context) {
 	var IDS request.IdsReq
 	err := c.ShouldBindJSON(&IDS)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := testOrderService.DeleteOrderByIds(IDS); err != nil {
+	if err := testSettingService.DeleteSettingByIds(IDS); err != nil {
 		global.GVA_LOG.Error("批量删除失败!", zap.Error(err))
 		response.FailWithMessage("批量删除失败", c)
 	} else {
@@ -61,14 +61,14 @@ func (testTestOrderApi *TestOrderApi) DeleteOrderByIds(c *gin.Context) {
 	}
 }
 
-func (testTestOrderApi *TestOrderApi) UpdateOrder(c *gin.Context) {
-	var order lgjx.Order
-	err := c.ShouldBindJSON(&order)
+func (testSettingApi *TestSettingApi) UpdateSetting(c *gin.Context) {
+	var setting lgjx.Setting
+	err := c.ShouldBindJSON(&setting)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := testOrderService.UpdateOrder(order); err != nil {
+	if err := testSettingService.UpdateSetting(setting); err != nil {
 		global.GVA_LOG.Error("更新失败!", zap.Error(err))
 		response.FailWithMessage("更新失败", c)
 	} else {
@@ -76,29 +76,29 @@ func (testTestOrderApi *TestOrderApi) UpdateOrder(c *gin.Context) {
 	}
 }
 
-func (testTestOrderApi *TestOrderApi) FindOrder(c *gin.Context) {
-	var order lgjx.Order
-	err := c.ShouldBindQuery(&order)
+func (testSettingApi *TestSettingApi) FindSetting(c *gin.Context) {
+	var setting lgjx.Setting
+	err := c.ShouldBindQuery(&setting)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if reorder, err := testOrderService.GetOrder(order.ID); err != nil {
+	if resetting, err := testSettingService.GetSetting(setting.ID); err != nil {
 		global.GVA_LOG.Error("查询失败!", zap.Error(err))
 		response.FailWithMessage("查询失败", c)
 	} else {
-		response.OkWithData(gin.H{"reorder": reorder}, c)
+		response.OkWithData(gin.H{"resetting": resetting}, c)
 	}
 }
 
-func (testTestOrderApi *TestOrderApi) GetOrderList(c *gin.Context) {
-	var pageInfo lgjxReq.OrderSearch
+func (testSettingApi *TestSettingApi) GetSettingList(c *gin.Context) {
+	var pageInfo lgjxReq.SettingSearch
 	err := c.ShouldBindQuery(&pageInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if list, total, err := testOrderService.GetOrderInfoList(pageInfo); err != nil {
+	if list, total, err := testSettingService.GetSettingInfoList(pageInfo); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))
 		response.FailWithMessage("获取失败", c)
 	} else {
@@ -107,17 +107,6 @@ func (testTestOrderApi *TestOrderApi) GetOrderList(c *gin.Context) {
 			Total:    total,
 			Page:     pageInfo.Page,
 			PageSize: pageInfo.PageSize,
-		}, "获取成功", c)
-	}
-}
-
-func (testTestOrderApi *TestOrderApi) GetOrderStatisticData(c *gin.Context) {
-	if orderStatisticData, err := testOrderService.GetOrderStatisticData(); err != nil {
-		global.GVA_LOG.Error("获取失败!", zap.Error(err))
-		response.FailWithMessage("获取失败", c)
-	} else {
-		response.OkWithDetailed(gin.H{
-			"orderStatisticData": orderStatisticData,
 		}, "获取成功", c)
 	}
 }

@@ -14,10 +14,13 @@ type OrderSearch struct {
 	ElogTemplateName *string     `json:"elogTemplateName" form:"elogTemplateName"`
 	ElogNo           *string     `json:"elogNo" form:"elogNo"`
 	OrderStatus      *string     `json:"orderStatus" form:"orderStatus"`
-	AuditStatus      *string     `json:"auditStatus" form:"auditStatus"`
+	AuditStatus      *int        `json:"auditStatus" form:"auditStatus"`
 	OpenBeginDate    []time.Time `json:"openBeginDate" form:"openBeginDate[]"`
 	ApplyCreatedAt   []time.Time `json:"applyCreatedAt" form:"applyCreatedAt[]"`
 	LetterCreatedAt  []time.Time `json:"letterCreatedAt" form:"letterCreatedAt[]"`
 	InsureDay        *int        `json:"insureDay" form:"insureDay"`
+	AuditDelay       *bool       `json:"auditDelay" form:"auditDelay"`
+	AuditRefund      *bool       `json:"auditRefund" form:"auditRefund"`
+	AuditClaim       *bool       `json:"auditClaim" form:"auditClaim"`
 	request.PageInfo
 }

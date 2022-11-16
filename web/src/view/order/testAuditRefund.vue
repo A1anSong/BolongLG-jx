@@ -337,6 +337,7 @@
                 effect="dark"
                 round
               >
+
                 {{ scope.row.pay != null ? "已付" : "未付" }}
               </el-tag>
             </template>
@@ -363,32 +364,27 @@
           <el-table-column align="center" label="工号" prop="employeeNo" min-width="120px" />
           <el-table-column align="center" label="业务员" prop="employeeNo" min-width="120px" />
         </el-table-column>
-        <!--        <el-table-column align="left" label="操作" min-width="240" fixed="right">-->
-        <!--          <template #default="scope">-->
-        <!--            <el-button-->
-        <!--              type="primary"-->
-        <!--              link-->
-        <!--              icon="edit"-->
-        <!--              size="small"-->
-        <!--              class="table-button"-->
-        <!--              @click="updateOrderFunc(scope.row)"-->
-        <!--            >变更-->
-        <!--            </el-button>-->
-        <!--            <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>-->
-        <!--          </template>-->
-        <!--        </el-table-column>-->
+        <el-table-column align="center" label="操作" min-width="200" fixed="right">
+          <template #default="scope">
+            <el-button
+              v-if="scope.row.refund.auditStatus===1"
+              type="success"
+              icon="select"
+              size="small"
+              @click="updateRefundFunc(scope.row.apply,2)"
+            >通过
+            </el-button>
+            <el-button
+              v-if="scope.row.refund.auditStatus===1"
+              type="danger"
+              icon="closeBold"
+              size="small"
+              @click="updateRefundFunc(scope.row.apply,3)"
+            >拒绝
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
-      <el-card shadow="always" style="float: left">
-        累计成功(未理赔，未退函)担保金额为
-        <span style="color: red">
-          {{ statisticData.totalGuaranteeAmount.toFixed(2) }}
-        </span>
-        元，收取保函费用为
-        <span style="color: red">
-          {{ statisticData.totalElogAmount.toFixed(2) }}
-        </span>
-        元
-      </el-card>
       <div class="gva-pagination">
         <el-pagination
           layout="total, sizes, prev, pager, next, jumper"
@@ -419,7 +415,7 @@
 
 <script>
 export default {
-  name: 'TestOrder'
+  name: 'TestRefundDelay'
 }
 </script>
 
@@ -430,9 +426,10 @@ import {
   deleteOrderByIds,
   updateOrder,
   findOrder,
-  getOrderList,
-  getOrderStatisticData
+  getOrderList
 } from '@/api/testOrder'
+
+import { updateApply } from '@/api/testApply'
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
@@ -461,15 +458,11 @@ const page = ref(1)
 const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
-const searchInfo = ref({})
-const statisticData = ref({
-  totalGuaranteeAmount: 0.0,
-  totalElogAmount: 0.0,
-})
+const searchInfo = ref({ auditRefund: true })
 
 // 重置
 const onReset = () => {
-  searchInfo.value = {}
+  searchInfo.value = { auditRefund: true }
   getTableData()
 }
 
@@ -500,10 +493,6 @@ const getTableData = async() => {
     total.value = table.data.total
     page.value = table.data.page
     pageSize.value = table.data.pageSize
-  }
-  const statistic = await getOrderStatisticData()
-  if (statistic.code === 0) {
-    statisticData.value = statistic.data.orderStatisticData
   }
 }
 
@@ -636,6 +625,25 @@ const enterDialog = async() => {
       getTableData()
     }
   })
+}
+
+const updateRefundFunc = async(apply, status) => {
+  // apply.auditStatus = status
+  // apply.auditOpinion = ''
+  // apply.auditDate = date(new Date())
+  // apply.realElogRate = 0.0006
+  // apply.realElogAmount = Math.round(apply.tenderDeposit * apply.realElogRate * 100) / 100
+  // apply.realElogAmount = apply.realElogAmount > 60 ? apply.realElogAmount : 60
+  // apply.insuranceName = 'XXX担保公司'
+  // apply.insuranceCreditCode = 'TkeAijrww5tiBmsyhZ'
+  // const res = await updateApply(apply)
+  if (res.code === 0) {
+    ElMessage({
+      type: 'success',
+      message: '创建/更改成功'
+    })
+    getTableData()
+  }
 }
 </script>
 

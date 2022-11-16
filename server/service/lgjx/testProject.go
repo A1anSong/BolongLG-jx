@@ -1,6 +1,7 @@
 package lgjx
 
 import (
+	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
@@ -11,7 +12,9 @@ type TestProjectService struct {
 }
 
 func (testProjectService *TestProjectService) CreateProject(project lgjx.Project) (err error) {
+	fmt.Println(project.ID)
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Create(&project).Error
+	fmt.Println(project.ID)
 	return err
 }
 

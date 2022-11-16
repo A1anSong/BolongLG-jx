@@ -21,6 +21,8 @@ type Order struct {
 	Delay     *Delay   `json:"delay" form:"delay"`
 	RefundID  *uint    `json:"-" form:"-"`
 	Refund    *Refund  `json:"refund" form:"refund"`
+	ClaimID   *uint    `json:"-" form:"-"`
+	Claim     *Claim   `json:"claim" form:"claim"`
 	LogoutID  *uint    `json:"-" form:"-"`
 	Logout    *Logout  `json:"logout" form:"logout"`
 	InvoiceID *uint    `json:"-" form:"-"`

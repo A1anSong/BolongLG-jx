@@ -4,6 +4,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/nonmigrate"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
 	"gorm.io/gorm/clause"
 )
@@ -41,7 +42,7 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 	offset := info.PageSize * (info.Page - 1)
 	// 创建db
 	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Order{})
-	db.Joins("Apply").Joins("Pay").Joins("Letter").Joins("Revoke").Joins("Delay").Joins("Refund").Joins("Logout").Joins("Invoice").Joins("Project")
+	db.Joins("Apply").Joins("Pay").Joins("Letter").Joins("Revoke").Joins("Delay").Joins("Refund").Joins("Claim").Joins("Logout").Joins("Invoice").Joins("Project")
 	var orders []lgjx.Order
 	// 如果有条件搜索 下方会自动创建搜索语句
 	if info.ApplyNo != nil {
@@ -59,12 +60,43 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 	if info.ElogNo != nil {
 		db = db.Where("Letter.elog_no = ?", info.ElogNo)
 	}
-	//if info.OrderStatus != nil {
-	//	db = db.Where("Apply.order_status = ?", info.OrderStatus)
-	//}
-	//if info.AuditStatus != nil {
-	//	db = db.Where("Apply.audit_status = ?", info.AuditStatus)
-	//}
+	if info.OrderStatus != nil {
+		if *info.OrderStatus == "销函" {
+			db = db.Where("order.logout_id is not null")
+		}
+		if *info.OrderStatus == "理赔" {
+			db = db.Where("order.logout_id is null")
+			db = db.Where("order.claim_id is not null AND Claim.audit_status = 2")
+		}
+		if *info.OrderStatus == "退函" {
+			db = db.Where("order.logout_id is null")
+			db = db.Where("order.claim_id is null")
+			db = db.Where("order.refund_id is not null AND Refund.audit_status = 2")
+		}
+		if *info.OrderStatus == "延期" {
+			db = db.Where("order.logout_id is null")
+			db = db.Where("order.claim_id is null")
+			db = db.Where("order.refund_id is null")
+			db = db.Where("order.delay_id is not null AND Delay.audit_status = 2")
+		}
+		if *info.OrderStatus == "已开" {
+			db = db.Where("order.logout_id is null")
+			db = db.Where("order.claim_id is null")
+			db = db.Where("order.refund_id is null")
+			db = db.Where("order.delay_id is null")
+			db = db.Where("order.letter_id is not null")
+		}
+		if *info.OrderStatus == "未开" {
+			db = db.Where("order.logout_id is null")
+			db = db.Where("order.claim_id is null")
+			db = db.Where("order.refund_id is null")
+			db = db.Where("order.delay_id is null")
+			db = db.Where("order.letter_id is null")
+		}
+	}
+	if info.AuditStatus != nil {
+		db = db.Where("Apply.audit_status = ?", info.AuditStatus)
+	}
 	if info.OpenBeginDate != nil {
 		db = db.Where("Apply.open_begin_date BETWEEN ? AND ?", info.OpenBeginDate[0], info.OpenBeginDate[1])
 	}
@@ -77,6 +109,15 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 	if info.InsureDay != nil {
 		db = db.Where("Letter.insure_day = ?", info.InsureDay)
 	}
+	if info.AuditDelay != nil {
+		db = db.Where("order.delay_id is not null")
+	}
+	if info.AuditRefund != nil {
+		db = db.Where("order.refund_id is not null")
+	}
+	if info.AuditClaim != nil {
+		db = db.Where("order.claim_id is not null")
+	}
 	err = db.Count(&total).Error
 	if err != nil {
 		return
@@ -84,4 +125,16 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 
 	err = db.Limit(limit).Preload(clause.Associations).Order("order.created_at desc").Offset(offset).Find(&orders).Error
 	return orders, total, err
+}
+
+func (testOrderService *TestOrderService) GetOrderStatisticData() (orderStatisticData nonmigrate.OrderStatisticData, err error) {
+	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Order{})
+	db.Joins("Pay").Joins("Letter").Joins("Refund").Joins("Claim")
+	//未理赔，未退函
+	db = db.Where("order.claim_id is null")
+	db = db.Where("order.refund_id is null")
+
+	err = db.Select("COALESCE(SUM(Letter.tender_deposit), 0) as TotalGuaranteeAmount, COALESCE(SUM(Pay.pay_amount), 0) as TotalElogAmount").Scan(&orderStatisticData).Error
+
+	return orderStatisticData, err
 }

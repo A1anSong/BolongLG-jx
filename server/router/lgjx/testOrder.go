@@ -20,7 +20,8 @@ func (s *TestOrderRouter) InitOrderRouter(Router *gin.RouterGroup) {
 		testOrderRouter.PUT("updateOrder", testOrderApi.UpdateOrder)              // 更新Order
 	}
 	{
-		testOrderRouterWithoutRecord.GET("findOrder", testOrderApi.FindOrder)       // 根据ID获取Order
-		testOrderRouterWithoutRecord.GET("getOrderList", testOrderApi.GetOrderList) // 获取Order列表
+		testOrderRouterWithoutRecord.GET("findOrder", testOrderApi.FindOrder)                         // 根据ID获取Order
+		testOrderRouterWithoutRecord.GET("getOrderList", testOrderApi.GetOrderList)                   // 获取Order列表
+		testOrderRouterWithoutRecord.GET("getOrderStatisticData", testOrderApi.GetOrderStatisticData) // 获取Order统计数据
 	}
 }

@@ -74,6 +74,7 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Invoice{},
 		lgjx.InvoiceApply{},
 		lgjx.Project{},
+		lgjx.Setting{},
 	)
 
 	if err != nil {
@@ -94,6 +95,7 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Invoice{},
 		lgjx.InvoiceApply{},
 		lgjx.Project{},
+		lgjx.Setting{},
 	)
 
 	if err != nil {
