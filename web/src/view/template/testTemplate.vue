@@ -39,18 +39,19 @@
         <!--        <el-table-column align="left" label="日期" width="180">-->
         <!--          <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>-->
         <!--        </el-table-column>-->
-        <el-table-column align="left" label="模板名称" prop="templateName" width="120" />
-        <el-table-column align="left" label="按钮组">
+        <el-table-column align="left" label="模板名称" prop="templateName" min-width="120px" />
+        <el-table-column align="left" label="按钮组" min-width="120px" fixed="right">
           <template #default="scope">
-<!--            <el-button-->
-<!--              type="primary"-->
-<!--              link-->
-<!--              icon="edit"-->
-<!--              size="small"-->
-<!--              class="table-button"-->
-<!--              @click="updateTemplateFunc(scope.row)"-->
-<!--            >变更-->
-<!--            </el-button>-->
+            <!--            <el-button-->
+            <!--              type="primary"-->
+            <!--              link-->
+            <!--              icon="edit"-->
+            <!--              size="small"-->
+            <!--              class="table-button"-->
+            <!--              @click="updateTemplateFunc(scope.row)"-->
+            <!--            >变更-->
+            <!--            </el-button>-->
+            <el-button type="primary" link icon="download" size="small" @click="downloadTemplateFile(scope.row.templateFile)">下载</el-button>
             <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -127,6 +128,7 @@ import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/form
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, reactive } from 'vue'
 import { useUserStore } from '@/pinia/modules/user'
+import { downloadFile } from '@/api/testFile'
 
 const path = ref(import.meta.env.VITE_BASE_API)
 
@@ -349,6 +351,10 @@ const uploadError = () => {
     type: 'error',
     message: '上传失败'
   })
+}
+
+const downloadTemplateFile = (file) => {
+  downloadFile(file)
 }
 </script>
 

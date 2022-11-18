@@ -81,3 +81,8 @@ func (testFileService *TestFileService) UploadFile(file *multipart.FileHeader) (
 	}
 	return fileName, nil
 }
+
+func (testFileService *TestFileService) DownloadFile(id uint) (file lgjx.File, err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Where("id = ?", id).First(&file).Error
+	return
+}

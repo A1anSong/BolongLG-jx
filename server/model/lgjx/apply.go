@@ -36,6 +36,7 @@ type Apply struct {
 	ApplicantName       *string  `json:"applicantName" form:"applicantName" gorm:"type:varchar(64);"`
 	ApplicantIdCard     *string  `json:"applicantIdCard" form:"applicantIdCard" gorm:"type:varchar(18);"`
 	ApplicantTel        *string  `json:"applicantTel" form:"applicantTel" gorm:"type:varchar(11);"`
+	ApplicantAuthCode   *string  `json:"applicantAuthCode" form:"applicantAuthCode" gorm:"type:varchar(12);"`
 	AttachInfo          *string  `json:"attachInfo" form:"attachInfo" gorm:"type:text;"`
 	AuditStatus         *int64   `json:"auditStatus" form:"auditStatus"`
 	AuditOpinion        *string  `json:"auditOpinion" form:"auditOpinion" gorm:"type:varchar(512);"`

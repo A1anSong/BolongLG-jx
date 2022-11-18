@@ -128,3 +128,20 @@ func (testFileApi *TestFileApi) UploadFile(c *gin.Context) {
 		}, "获取成功", c)
 	}
 }
+
+func (testFileApi *TestFileApi) DownloadFile(c *gin.Context) {
+	var file lgjx.File
+	err := c.ShouldBindQuery(&file)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if refile, err := testFileService.DownloadFile(file.ID); err != nil {
+		global.GVA_LOG.Error("查询失败!", zap.Error(err))
+		response.FailWithMessage("查询失败", c)
+	} else {
+		c.Writer.Header().Add("success", "true")
+		c.Header("Content-Disposition", "attachment; filename="+*refile.FileName) // 用来指定下载下来的文件名
+		c.Data(200, "application/octet-stream", refile.FileSteam)
+	}
+}

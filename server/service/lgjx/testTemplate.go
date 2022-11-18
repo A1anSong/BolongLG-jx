@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/nonmigrate"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"io"
 	"os"
 )
@@ -40,6 +41,7 @@ func (testTemplateService *TestTemplateService) CreateTemplate(templateAndFile n
 		if err := tx.Create(&template).Error; err != nil {
 			return err
 		}
+		_ = os.Remove(basePath + *templateAndFile.FileName)
 		return nil
 	})
 
@@ -47,7 +49,7 @@ func (testTemplateService *TestTemplateService) CreateTemplate(templateAndFile n
 }
 
 func (testTemplateService *TestTemplateService) DeleteTemplate(template lgjx.Template) (err error) {
-	err = global.MustGetGlobalDBByDBName("lg-jx-test").Delete(&template).Error
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Select(clause.Associations).Delete(&template).Error
 	return err
 }
 
@@ -81,6 +83,6 @@ func (testTemplateService *TestTemplateService) GetTemplateInfoList(info lgjxReq
 		return
 	}
 
-	err = db.Limit(limit).Offset(offset).Find(&templates).Error
+	err = db.Limit(limit).Preload(clause.Associations).Offset(offset).Find(&templates).Error
 	return templates, total, err
 }

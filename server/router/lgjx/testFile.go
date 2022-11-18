@@ -23,5 +23,6 @@ func (s *TestFileRouter) InitFileRouter(Router *gin.RouterGroup) {
 		testFileRouterWithoutRecord.GET("findFile", testFileApi.FindFile)       // 根据ID获取File
 		testFileRouterWithoutRecord.GET("getFileList", testFileApi.GetFileList) // 获取File列表
 		testFileRouterWithoutRecord.POST("upload", testFileApi.UploadFile)      // 上传文件
+		testFileRouterWithoutRecord.GET("download", testFileApi.DownloadFile)   // 下载文件
 	}
 }

@@ -10,7 +10,7 @@ type Template struct {
 	global.GVA_MODEL
 	TemplateName   *string `json:"templateName" form:"templateName" gorm:"type:varchar(128);"`
 	TemplateFileID *uint   `json:"-" form:"-"`
-	TemplateFile   *File   `json:"-" form:"-"`
+	TemplateFile   *File   `json:"templateFile" form:"templateFile"`
 }
 
 // TableName Template 表名

@@ -16,6 +16,8 @@ import (
 
 func Routers() *gin.Engine {
 	Router := gin.Default()
+	jrapiRouter := router.RouterGroupApp.JRAPI
+	jrapiTestRouter := router.RouterGroupApp.JRAPITest
 	lgjxRouter := router.RouterGroupApp.Lgjx
 	lgjxTestRouter := router.RouterGroupApp.LgjxTest
 	systemRouter := router.RouterGroupApp.System
@@ -49,6 +51,10 @@ func Routers() *gin.Engine {
 	{
 		systemRouter.InitBaseRouter(PublicGroup) // 注册基础功能路由 不做鉴权
 		systemRouter.InitInitRouter(PublicGroup) // 自动初始化相关
+	}
+	{
+		jrapiRouter.InitJRAPIRouter(PublicGroup)
+		jrapiTestRouter.InitJRAPIRouter(PublicGroup)
 	}
 	PrivateGroup := Router.Group("")
 	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
