@@ -1,12 +1,13 @@
 package lgjx
 
 import (
-	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
+	"io"
 	"mime/multipart"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -61,12 +62,22 @@ func (testFileService *TestFileService) GetFileInfoList(info lgjxReq.FileSearch)
 }
 
 func (testFileService *TestFileService) UploadFile(file *multipart.FileHeader) (fileName string, err error) {
-	//basePath := "./tmp/"
+	basePath := "./tmp/"
 	fileSuffix := path.Ext(file.Filename)
 	fileNameOnly := strings.TrimSuffix(file.Filename, fileSuffix)
 	year, month, day := time.Now().Date()
 	fileName = fileNameOnly + strconv.Itoa(year) + strconv.Itoa(int(month)) + strconv.Itoa(day) + fileSuffix
-	fmt.Println(fileName)
-
+	out, err := os.Create(basePath + fileName)
+	if err != nil {
+		return "", err
+	}
+	defer func(out *os.File) {
+		_ = out.Close()
+	}(out)
+	fileOut, err := file.Open()
+	_, err = io.Copy(out, fileOut)
+	if err != nil {
+		return "", err
+	}
 	return fileName, nil
 }

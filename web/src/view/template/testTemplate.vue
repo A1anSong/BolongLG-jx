@@ -42,7 +42,15 @@
         <el-table-column align="left" label="模板名称" prop="templateName" width="120" />
         <el-table-column align="left" label="按钮组">
           <template #default="scope">
-            <el-button type="primary" link icon="edit" size="small" class="table-button" @click="updateTemplateFunc(scope.row)">变更</el-button>
+<!--            <el-button-->
+<!--              type="primary"-->
+<!--              link-->
+<!--              icon="edit"-->
+<!--              size="small"-->
+<!--              class="table-button"-->
+<!--              @click="updateTemplateFunc(scope.row)"-->
+<!--            >变更-->
+<!--            </el-button>-->
             <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -74,7 +82,9 @@
             :on-success="uploadSuccess"
             drag
           >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+            <el-icon class="el-icon--upload">
+              <upload-filled />
+            </el-icon>
             <div class="el-upload__text">
               拖动文件到此或 <em>点击上传</em>
             </div>
@@ -125,11 +135,11 @@ const userStore = useUserStore()
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
   templateName: '',
+  fileName: '',
 })
 
 // 验证规则
-const rule = reactive({
-})
+const rule = reactive({})
 
 const elFormRef = ref()
 const fileList = ref([])
@@ -271,6 +281,7 @@ const dialogFormVisible = ref(false)
 // 打开弹窗
 const openDialog = () => {
   type.value = 'create'
+  fileList.value = []
   dialogFormVisible.value = true
 }
 
@@ -324,6 +335,7 @@ const uploadSuccess = (res, uploadFile) => {
   const { data } = res
   if (data.fileName) {
     uploadFile.name = data.fileName
+    formData.value.fileName = data.fileName
     fileList.value = [uploadFile]
     ElMessage({
       type: 'success',

@@ -5,6 +5,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/nonmigrate"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/gin-gonic/gin"
@@ -17,13 +18,13 @@ type TestTemplateApi struct {
 var testTemplateService = service.ServiceGroupApp.LgjxTestServiceGroup.TestTemplateService
 
 func (testTemplateApi *TestTemplateApi) CreateTemplate(c *gin.Context) {
-	var template lgjx.Template
-	err := c.ShouldBindJSON(&template)
+	var templateAndFile nonmigrate.TemplateAndFile
+	err := c.ShouldBindJSON(&templateAndFile)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := testTemplateService.CreateTemplate(template); err != nil {
+	if err := testTemplateService.CreateTemplate(templateAndFile); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
 	} else {

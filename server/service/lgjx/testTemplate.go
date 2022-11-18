@@ -4,14 +4,45 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/nonmigrate"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
+	"gorm.io/gorm"
+	"io"
+	"os"
 )
 
 type TestTemplateService struct {
 }
 
-func (testTemplateService *TestTemplateService) CreateTemplate(template lgjx.Template) (err error) {
-	err = global.MustGetGlobalDBByDBName("lg-jx-test").Create(&template).Error
+func (testTemplateService *TestTemplateService) CreateTemplate(templateAndFile nonmigrate.TemplateAndFile) (err error) {
+	//err = global.MustGetGlobalDBByDBName("lg-jx-test").Create(&template).Error
+	basePath := "./tmp/"
+	file, err := os.Open(basePath + *templateAndFile.FileName)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+	fileContent, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	templateAndFile.FileSteam = fileContent
+
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		file := templateAndFile.File
+		if err := tx.Create(&file).Error; err != nil {
+			return err
+		}
+		template := templateAndFile.Template
+		template.TemplateFileID = &file.ID
+		if err := tx.Create(&template).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
 	return err
 }
 
