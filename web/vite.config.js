@@ -8,6 +8,7 @@ import * as fs from 'fs'
 import vuePlugin from '@vitejs/plugin-vue'
 import GvaPosition from './vitePlugin/gvaPosition'
 import GvaPositionServer from './vitePlugin/codeServer'
+import * as http from 'http';
 // @see https://cn.vitejs.dev/config/
 export default ({
   command,

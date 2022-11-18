@@ -129,7 +129,7 @@
 
 <script>
 export default {
-  name: 'Project'
+  name: 'TestProject'
 }
 </script>
 

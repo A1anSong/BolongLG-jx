@@ -120,7 +120,7 @@
         table-layout="fixed"
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="expand">
+        <el-table-column type="expand" label="详情">
           <template #default="scope">
             <div>
               <el-row :gutter="20">

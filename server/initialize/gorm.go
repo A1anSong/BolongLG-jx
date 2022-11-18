@@ -74,6 +74,8 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Invoice{},
 		lgjx.InvoiceApply{},
 		lgjx.Project{},
+		lgjx.Template{},
+		lgjx.File{},
 		lgjx.Setting{},
 	)
 
@@ -95,6 +97,8 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Invoice{},
 		lgjx.InvoiceApply{},
 		lgjx.Project{},
+		lgjx.Template{},
+		lgjx.File{},
 		lgjx.Setting{},
 	)
 
