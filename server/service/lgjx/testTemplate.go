@@ -33,12 +33,12 @@ func (testTemplateService *TestTemplateService) CreateTemplate(templateAndFile n
 
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		file := templateAndFile.File
-		if err := tx.Create(&file).Error; err != nil {
+		if err = tx.Create(&file).Error; err != nil {
 			return err
 		}
 		template := templateAndFile.Template
 		template.TemplateFileID = &file.ID
-		if err := tx.Create(&template).Error; err != nil {
+		if err = tx.Create(&template).Error; err != nil {
 			return err
 		}
 		_ = os.Remove(basePath + *templateAndFile.FileName)

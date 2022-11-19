@@ -5,7 +5,7 @@ import "github.com/gin-gonic/gin"
 type JRAPI struct {
 }
 
-// TODO 这里添加service
+// TODO:这里添加service
 // var applyService = service.ServiceGroupApp.LgjxServiceGroup.ApplyService
 
 func (jrApi *JRAPI) Apply(c *gin.Context) {

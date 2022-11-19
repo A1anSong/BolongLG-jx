@@ -9,6 +9,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"net/http"
 )
 
 type TestFileApi struct {
@@ -142,6 +143,6 @@ func (testFileApi *TestFileApi) DownloadFile(c *gin.Context) {
 	} else {
 		c.Writer.Header().Add("success", "true")
 		c.Header("Content-Disposition", "attachment; filename="+*refile.FileName) // 用来指定下载下来的文件名
-		c.Data(200, "application/octet-stream", refile.FileSteam)
+		c.Data(http.StatusOK, "application/octet-stream", refile.FileSteam)
 	}
 }

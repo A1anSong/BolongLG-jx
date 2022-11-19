@@ -45,6 +45,8 @@ type Apply struct {
 	RealElogRate        *float64 `json:"realElogRate" form:"realElogRate"`
 	InsuranceName       *string  `json:"insuranceName" form:"insuranceName" gorm:"type:varchar(256);"`
 	InsuranceCreditCode *string  `json:"insuranceCreditCode" form:"insuranceCreditCode" gorm:"type:varchar(18);"`
+	PayUrl              *string  `json:"payUrl" form:"payUrl" gorm:"type:varchar(256);"`
+	ReceiveName         *string  `json:"receiveName" form:"receiveName" gorm:"type:varchar(256);"`
 }
 
 // TableName Apply 表名
