@@ -3,16 +3,16 @@
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
         <el-form-item label="申请编号">
-          <el-input v-model="searchInfo.applyNo" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.applyNo" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="标段名称">
-          <el-input v-model="searchInfo.projectName" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.projectName" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="申请企业">
-          <el-input v-model="searchInfo.insureName" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.insureName" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="保函格式">
-          <el-select v-model="searchInfo.elogTemplateName">
+          <el-select v-model="searchInfo.elogTemplateName" clearable>
             <el-option
               v-for="item in 10"
               :key="item"
@@ -22,10 +22,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="保函编号">
-          <el-input v-model="searchInfo.elogNo" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.elogNo" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="订单状态">
-          <el-select v-model="searchInfo.orderStatus">
+          <el-select v-model="searchInfo.orderStatus" clearable>
             <el-option
               value="未开"
             />
@@ -47,7 +47,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="审核状态">
-          <el-select v-model="searchInfo.auditStatus">
+          <el-select v-model="searchInfo.auditStatus" clearable>
             <el-option
               label="待审"
               value="1"
@@ -87,7 +87,7 @@
           />
         </el-form-item>
         <el-form-item label="担保期限">
-          <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" />
+          <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item>
           <el-button size="small" type="primary" icon="search" @click="onSubmit">查询</el-button>
@@ -243,7 +243,12 @@
                       scope.row.letter.elogNo
                     }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="保函文件">{{ scope.row.letter.elogUrl }}</el-descriptions-item>
+                    <el-descriptions-item label="出函时间">{{ scope.row.letter.elogOutDate }}</el-descriptions-item>
+                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'https://lg.a1ansong.com/test/lg/letterFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
+                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'https://lg.a1ansong.com/test/lg/letterFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
+                    <el-descriptions-item label="担保金额">{{ scope.row.letter.tenderDeposit }}</el-descriptions-item>
+                    <el-descriptions-item label="担保开始时间">{{ scope.row.letter.insureStartDate }}</el-descriptions-item>
+                    <el-descriptions-item label="担保截止时间">{{ scope.row.letter.insureEndDate }}</el-descriptions-item>
                     <el-descriptions-item label="担保期限（天）">{{ scope.row.letter.insureDay }}</el-descriptions-item>
                     <el-descriptions-item label="验真码">{{ scope.row.letter.validateCode }}</el-descriptions-item>
                   </el-descriptions>

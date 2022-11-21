@@ -51,3 +51,7 @@ func (jrApi *JRAPI) LetterFileDownload(c *gin.Context) {
 func (jrApi *JRAPI) DelayFileDownload(c *gin.Context) {
 	c.String(200, "ok")
 }
+
+func (jrApi *JRAPI) InvoiceFileDownload(c *gin.Context) {
+	c.String(200, "ok")
+}

@@ -232,9 +232,36 @@ func (testJRAPI *TestJRAPI) ApplyInvoice(c *gin.Context) {
 }
 
 func (testJRAPI *TestJRAPI) LetterFileDownload(c *gin.Context) {
-	c.String(http.StatusOK, "ok")
+	elog, ok := c.GetQuery("elog")
+	if !ok {
+		c.String(http.StatusOK, "非法参数")
+		return
+	}
+	encrypt, ok := c.GetQuery("type")
+	encryptFlag := false
+	if ok {
+		if encrypt == "encrypt" {
+			encryptFlag = true
+		} else {
+			c.String(http.StatusOK, "非法参数")
+			return
+		}
+	}
+
+	if refile, err := testJRAPIService.LetterFileDownload(elog, encryptFlag); err != nil {
+		c.String(http.StatusOK, "获取文件失败")
+		return
+	} else {
+		c.Writer.Header().Add("success", "true")
+		c.Header("Content-Disposition", "attachment; filename="+*refile.FileName) // 用来指定下载下来的文件名
+		c.Data(http.StatusOK, "application/octet-stream", refile.FileSteam)
+	}
 }
 
 func (testJRAPI *TestJRAPI) DelayFileDownload(c *gin.Context) {
+	c.String(http.StatusOK, "ok")
+}
+
+func (testJRAPI *TestJRAPI) InvoiceFileDownload(c *gin.Context) {
 	c.String(http.StatusOK, "ok")
 }

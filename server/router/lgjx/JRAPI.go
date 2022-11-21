@@ -11,6 +11,7 @@ type JRAPIRouter struct {
 
 func (s *JRAPIRouter) InitJRAPIRouter(Router *gin.RouterGroup) {
 	jrapiRouter := Router.Group("lg").Use(middleware.JRValidate())
+	jrapiRouterPublic := Router.Group("lg")
 	jrApi := v1.ApiGroupApp.LgjxApiGroup.JRAPI
 	{
 		jrapiRouter.POST("apply", jrApi.Apply)
@@ -24,7 +25,8 @@ func (s *JRAPIRouter) InitJRAPIRouter(Router *gin.RouterGroup) {
 		jrapiRouter.POST("applyInvoice", jrApi.ApplyInvoice)
 	}
 	{
-		jrapiRouter.GET("letterFileDownload", jrApi.LetterFileDownload)
-		jrapiRouter.GET("delayFileDownload", jrApi.DelayFileDownload)
+		jrapiRouterPublic.GET("letterFileDownload", jrApi.LetterFileDownload)
+		jrapiRouterPublic.GET("delayFileDownload", jrApi.DelayFileDownload)
+		jrapiRouterPublic.GET("invoiceFileDownload", jrApi.InvoiceFileDownload)
 	}
 }

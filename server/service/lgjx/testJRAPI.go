@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrrequest"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
+	lgjx2 "github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
 	"gorm.io/gorm"
 	"time"
 )
@@ -50,6 +51,9 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 		if err = tx.Create(&order).Error; err != nil {
 			return err
 		}
+		var auditStatus int64 = 1
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		apply := &lgjx.Apply{
 			OrderID:           &order.ID,
 			OrderNo:           reApply.OrderNo,
@@ -80,9 +84,9 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 			ApplicantTel:      reApply.ApplicantTel,
 			ApplicantAuthCode: reApply.ApplicantAuthCode,
 			AttachInfo:        reApply.AttachInfo,
-			AuditStatus:       resApply.AuditStatus,
-			AuditOpinion:      resApply.AuditOpinion,
-			AuditDate:         resApply.AuditDate,
+			AuditStatus:       &auditStatus,
+			AuditOpinion:      &auditOpinion,
+			AuditDate:         &auditDate,
 		}
 		if err = tx.Create(&apply).Error; err != nil {
 			return err
@@ -91,9 +95,6 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 		if err = tx.Save(&order).Error; err != nil {
 			return err
 		}
-		var auditStatus int64 = 1
-		auditOpinion := ""
-		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		resApply = jrresponse.JRAPIApply{
 			OrderNo:      reApply.OrderNo,
 			ApplyNo:      reApply.ApplyNo,
@@ -139,6 +140,37 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		resPayPush = jrresponse.JRAPIPayPush{
 			ReceiveResult: &receiveResult,
 		}
+
+		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload("Apply").First(&order).Error; err != nil {
+			return err
+		}
+		var templateFile lgjx.File
+		if err = tx.First(&templateFile).Error; err != nil {
+			return err
+		}
+
+		var letter lgjx.Letter
+		var file lgjx.File
+		var encryptFile lgjx.File
+		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile); err != nil {
+			return err
+		}
+		if err = tx.Create(&file).Error; err != nil {
+			return err
+		}
+		if err = tx.Create(&encryptFile).Error; err != nil {
+			return err
+		}
+		letter.ElogFileID = &file.ID
+		letter.ElogEncryptFileID = &encryptFile.ID
+		if err = tx.Create(&letter).Error; err != nil {
+			return err
+		}
+		order.LetterID = &letter.ID
+		if err = tx.Save(&order).Error; err != nil {
+			return err
+		}
+
 		return nil
 	})
 	return
@@ -162,9 +194,9 @@ func (testJRAPIService *TestJRAPIService) QueryInfo(reQueryInfo jrrequest.JRAPIQ
 			ProductRate:         letter.Order.Apply.ProductRate,
 			InsuranceName:       letter.InsuranceName,
 			InsuranceCreditCode: letter.InsuranceCreditCode,
-			EloOutDate:          letter.EloOutDate,
-			EloUrl:              letter.EloUrl,
-			EloEncryptUrl:       letter.EloEncryptUrl,
+			EloOutDate:          letter.ElogOutDate,
+			EloUrl:              letter.ElogUrl,
+			EloEncryptUrl:       letter.ElogEncryptUrl,
 			TenderDeposit:       letter.TenderDeposit,
 			InsureStartDate:     letter.InsureStartDate,
 			InsureEndDate:       letter.InsureEndDate,
@@ -439,5 +471,22 @@ func (testJRAPIService *TestJRAPIService) ApplyInvoice(reApplyInvoice jrrequest.
 		}
 		return nil
 	})
+	return
+}
+
+func (testJRAPIService *TestJRAPIService) LetterFileDownload(elog string, encrypt bool) (file lgjx.File, err error) {
+	var letter lgjx.Letter
+	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Letter{})
+	if encrypt {
+		db = db.Where("elog_encrypt_url = ?", elog)
+	} else {
+		db = db.Where("elog_url = ?", elog)
+	}
+	err = db.Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
+	if encrypt {
+		file = *letter.ElogEncryptFile
+	} else {
+		file = *letter.ElogFile
+	}
 	return
 }
