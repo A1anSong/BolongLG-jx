@@ -116,6 +116,15 @@
         <el-form-item label="项目类型:" prop="projectType">
           <el-input v-model="formData.projectType" :clearable="true" placeholder="请输入" />
         </el-form-item>
+        <el-form-item label="项目模板:" prop="templateID">
+          <el-select v-model="formData.templateID" clearable placeholder="请输入" style="width: 100%">
+            <el-option
+              v-for="template in templateData"
+              :key="template.ID"
+              :label="template.templateName"
+              :value="template.ID"
+            />
+          </el-select></el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -147,23 +156,25 @@ import {
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, reactive } from 'vue'
+import { getTemplateList } from '@/api/testTemplate'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-  projectName: '',
-  projectNo: '',
-  projectAmount: 0,
-  tendereeName: '',
-  tendereeAddress: '',
-  tendereeTel: '',
-  tenderDeposit: 0,
-  projectOpenTime: '',
-  projectPublishTime: '',
-  projectCity: '',
-  projectCounty: '',
-  projectDay: 0,
-  tenderEndDate: '',
-  projectType: '',
+  projectName: null,
+  projectNo: null,
+  projectAmount: null,
+  tendereeName: null,
+  tendereeAddress: null,
+  tendereeTel: null,
+  tenderDeposit: null,
+  projectOpenTime: null,
+  projectPublishTime: null,
+  projectCity: null,
+  projectCounty: null,
+  projectDay: null,
+  tenderEndDate: null,
+  projectType: null,
+  templateID: null,
 })
 
 // 验证规则
@@ -178,6 +189,7 @@ const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
 const searchInfo = ref({})
+const templateData = ref([])
 
 // 重置
 const onReset = () => {
@@ -215,6 +227,15 @@ const getTableData = async() => {
   }
 }
 
+// 获取模板列表
+const getTemplateData = async() => {
+  const template = await getTemplateList({ page: 1, pageSize: 999 })
+  if (template.code === 0) {
+    templateData.value = template.data.list
+  }
+}
+
+getTemplateData()
 getTableData()
 
 // ============== 表格控制部分结束 ===============

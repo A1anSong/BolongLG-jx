@@ -252,7 +252,6 @@ func (testJRAPI *TestJRAPI) LetterFileDownload(c *gin.Context) {
 		c.String(http.StatusOK, "获取文件失败")
 		return
 	} else {
-		c.Writer.Header().Add("success", "true")
 		c.Header("Content-Disposition", "attachment; filename="+*refile.FileName) // 用来指定下载下来的文件名
 		c.Data(http.StatusOK, "application/octet-stream", refile.FileSteam)
 	}

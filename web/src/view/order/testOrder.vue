@@ -12,12 +12,12 @@
           <el-input v-model="searchInfo.insureName" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="保函格式">
-          <el-select v-model="searchInfo.elogTemplateName" clearable>
+          <el-select v-model="searchInfo.elogTemplateId" clearable>
             <el-option
-              v-for="item in 10"
-              :key="item"
-              :label="item"
-              :value="item"
+              v-for="template in templateData"
+              :key="template.ID"
+              :label="template.templateName"
+              :value="template.ID"
             />
           </el-select>
         </el-form-item>
@@ -86,7 +86,7 @@
             end-placeholder="结束时间"
           />
         </el-form-item>
-        <el-form-item label="担保期限">
+        <el-form-item label="担保期限" clearable>
           <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item>
@@ -96,19 +96,20 @@
       </el-form>
     </div>
     <div class="gva-table-box">
-      <!--      <div class="gva-btn-list">-->
-      <!--        <el-button size="small" type="primary" icon="plus" @click="openDialog">新增</el-button>-->
-      <!--        <el-popover v-model:visible="deleteVisible" placement="top" width="160">-->
-      <!--          <p>确定要删除吗？</p>-->
-      <!--          <div style="text-align: right; margin-top: 8px;">-->
-      <!--            <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>-->
-      <!--            <el-button size="small" type="primary" @click="onDelete">确定</el-button>-->
-      <!--          </div>-->
-      <!--          <template #reference>-->
-      <!--            <el-button icon="delete" size="small" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>-->
-      <!--          </template>-->
-      <!--        </el-popover>-->
-      <!--      </div>-->
+      <div class="gva-btn-list">
+        <!--              <el-button size="small" type="primary" icon="plus" @click="openDialog">新增</el-button>-->
+        <!--              <el-popover v-model:visible="deleteVisible" placement="top" width="160">-->
+        <!--                <p>确定要删除吗？</p>-->
+        <!--                <div style="text-align: right; margin-top: 8px;">-->
+        <!--                  <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>-->
+        <!--                  <el-button size="small" type="primary" @click="onDelete">确定</el-button>-->
+        <!--                </div>-->
+        <!--                <template #reference>-->
+        <!--                  <el-button icon="delete" size="small" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>-->
+        <!--                </template>-->
+        <!--              </el-popover>-->
+        <el-button size="small" type="success" icon="document" @click="exportExcel">导出excel</el-button>
+      </div>
       <el-table
         ref="multipleTable"
         style="width: 100%"
@@ -436,7 +437,7 @@ import {
   updateOrder,
   findOrder,
   getOrderList,
-  getOrderStatisticData
+  getOrderStatisticData, downloadExcel
 } from '@/api/testOrder'
 
 // 全量引入格式化工具 请按需保留
@@ -450,6 +451,7 @@ import { productType } from '@/utils/jxlg/productType'
 import { amount } from '@/utils/jxlg/amount'
 import { attachType } from '@/utils/jxlg/attachType'
 import { orderStatus, orderStatusType } from '@/utils/jxlg/orderStatus'
+import { getTemplateList } from '@/api/testTemplate'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -467,6 +469,7 @@ const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
 const searchInfo = ref({})
+const templateData = ref([])
 const statisticData = ref({
   totalGuaranteeAmount: 0.0,
   totalElogAmount: 0.0,
@@ -512,6 +515,15 @@ const getTableData = async() => {
   }
 }
 
+// 获取模板列表
+const getTemplateData = async() => {
+  const template = await getTemplateList({ page: 1, pageSize: 999 })
+  if (template.code === 0) {
+    templateData.value = template.data.list
+  }
+}
+
+getTemplateData()
 getTableData()
 
 // ============== 表格控制部分结束 ===============
@@ -641,6 +653,11 @@ const enterDialog = async() => {
       getTableData()
     }
   })
+}
+
+// 导出excel
+const exportExcel = async() => {
+  downloadExcel({ page: 1, pageSize: 9999, ...searchInfo.value })
 }
 </script>
 

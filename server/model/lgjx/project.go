@@ -22,7 +22,7 @@ type Project struct {
 	ProjectDay         *int64    `json:"projectDay" form:"projectDay"`
 	TenderEndDate      *string   `json:"tenderEndDate" form:"tenderEndDate" gorm:"type:varchar(19);"`
 	ProjectType        *string   `json:"projectType" form:"projectType" gorm:"type:varchar(2);"`
-	TemplateID         *uint     `json:"-" form:"-"`
+	TemplateID         *uint     `json:"templateID" form:"templateID"`
 	Template           *Template `json:"template" form:"template"`
 }
 

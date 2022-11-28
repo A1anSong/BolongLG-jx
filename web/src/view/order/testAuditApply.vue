@@ -3,29 +3,29 @@
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
         <el-form-item label="申请编号">
-          <el-input v-model="searchInfo.applyNo" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.applyNo" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="标段名称">
-          <el-input v-model="searchInfo.projectName" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.projectName" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="申请企业">
-          <el-input v-model="searchInfo.insureName" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.insureName" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="保函格式">
-          <el-select v-model="searchInfo.elogTemplateName">
+          <el-select v-model="searchInfo.elogTemplateId" clearable>
             <el-option
-              v-for="item in 10"
-              :key="item"
-              :label="item"
-              :value="item"
+              v-for="template in templateData"
+              :key="template.ID"
+              :label="template.templateName"
+              :value="template.ID"
             />
           </el-select>
         </el-form-item>
         <el-form-item label="保函编号">
-          <el-input v-model="searchInfo.elogNo" placeholder="搜索条件" />
+          <el-input v-model="searchInfo.elogNo" placeholder="搜索条件" clearable />
         </el-form-item>
         <el-form-item label="订单状态">
-          <el-select v-model="searchInfo.orderStatus">
+          <el-select v-model="searchInfo.orderStatus" clearable>
             <el-option
               value="未开"
             />
@@ -47,7 +47,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="审核状态">
-          <el-select v-model="searchInfo.auditStatus">
+          <el-select v-model="searchInfo.auditStatus" clearable>
             <el-option
               label="待审"
               value="1"
@@ -86,7 +86,7 @@
             end-placeholder="结束时间"
           />
         </el-form-item>
-        <el-form-item label="担保期限">
+        <el-form-item label="担保期限" clearable>
           <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" />
         </el-form-item>
         <el-form-item>
@@ -442,6 +442,7 @@ import { productType } from '@/utils/jxlg/productType'
 import { amount } from '@/utils/jxlg/amount'
 import { attachType } from '@/utils/jxlg/attachType'
 import { orderStatus, orderStatusType } from '@/utils/jxlg/orderStatus'
+import { getTemplateList } from '@/api/testTemplate'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -459,6 +460,7 @@ const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
 const searchInfo = ref({})
+const templateData = ref([])
 
 // 重置
 const onReset = () => {
@@ -496,6 +498,15 @@ const getTableData = async() => {
   }
 }
 
+// 获取模板列表
+const getTemplateData = async() => {
+  const template = await getTemplateList({ page: 1, pageSize: 999 })
+  if (template.code === 0) {
+    templateData.value = template.data.list
+  }
+}
+
+getTemplateData()
 getTableData()
 
 // ============== 表格控制部分结束 ===============

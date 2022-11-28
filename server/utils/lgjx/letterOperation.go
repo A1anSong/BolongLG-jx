@@ -96,8 +96,20 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, f
 	_ = os.Remove(basePath + "letter" + fileName + ".docx")
 	_ = os.Remove(basePath + "letter" + fileName + "encrypt.docx")
 
-	letterFileName := "letter" + fileName + ".pdf"
-	encryptLetterFileName := "letter" + fileName + "encrypt.pdf"
+	err = exec.Command("java", "-jar", "jxblSignature.jar", "./jxbl/jxbl.p12", basePath+"letter"+fileName+".pdf", basePath+"letter"+fileName+"Signed.pdf", "./jxbl/stamp.png").Run()
+	if err != nil {
+		return
+	}
+	err = exec.Command("java", "-jar", "jxblSignature.jar", "./jxbl/jxbl.p12", basePath+"letter"+fileName+"encrypt.pdf", basePath+"letter"+fileName+"encryptSigned.pdf", "./jxbl/stamp.png").Run()
+	if err != nil {
+		return
+	}
+
+	_ = os.Remove(basePath + "letter" + fileName + ".pdf")
+	_ = os.Remove(basePath + "letter" + fileName + "encrypt.pdf")
+
+	letterFileName := "letter" + fileName + "Signed.pdf"
+	encryptLetterFileName := "letter" + fileName + "encryptSigned.pdf"
 	letterFile, err := os.Open(basePath + letterFileName)
 	if err != nil {
 		return

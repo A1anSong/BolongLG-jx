@@ -9,6 +9,9 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 type TestOrderApi struct {
@@ -119,5 +122,22 @@ func (testTestOrderApi *TestOrderApi) GetOrderStatisticData(c *gin.Context) {
 		response.OkWithDetailed(gin.H{
 			"orderStatisticData": orderStatisticData,
 		}, "获取成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) ExportExcel(c *gin.Context) {
+	var pageInfo lgjxReq.OrderSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if excel, err := testOrderService.ExportExcel(pageInfo); err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		c.Writer.Header().Add("success", "true")
+		c.Header("Content-Disposition", "attachment; filename="+strconv.Itoa(int(time.Now().Unix()))+".xlsx") // 用来指定下载下来的文件名
+		c.Data(http.StatusOK, "application/octet-stream", excel)
 	}
 }
