@@ -9,7 +9,7 @@ import (
 type Project struct {
 	global.GVA_MODEL
 	ProjectName        *string   `json:"projectName" form:"projectName" gorm:"type:varchar(256);"`
-	ProjectNo          *string   `json:"projectNo" form:"projectNo" gorm:"type:varchar(128);"`
+	ProjectNo          *string   `json:"projectNo" form:"projectNo" gorm:"type:varchar(64);"`
 	ProjectAmount      *float64  `json:"projectAmount" form:"projectAmount"`
 	TendereeName       *string   `json:"tendereeName" form:"tendereeName" gorm:"type:varchar(256);"`
 	TendereeAddress    *string   `json:"tendereeAddress" form:"tendereeAddress" gorm:"type:varchar(256);"`
@@ -21,9 +21,10 @@ type Project struct {
 	ProjectCounty      *string   `json:"projectCounty" form:"projectCounty" gorm:"type:varchar(64);"`
 	ProjectDay         *int64    `json:"projectDay" form:"projectDay"`
 	TenderEndDate      *string   `json:"tenderEndDate" form:"tenderEndDate" gorm:"type:varchar(19);"`
-	ProjectType        *string   `json:"projectType" form:"projectType" gorm:"type:varchar(2);"`
+	ProjectType        *string   `json:"projectType" form:"projectType" gorm:"type:varchar(64);"`
 	TemplateID         *uint     `json:"templateID" form:"templateID"`
 	Template           *Template `json:"template" form:"template"`
+	IsEnable           *bool     `json:"isEnable" form:"isEnable"`
 }
 
 // TableName Project 表名

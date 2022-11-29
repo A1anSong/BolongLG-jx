@@ -110,3 +110,31 @@ func (testProjectApi *TestProjectApi) GetProjectList(c *gin.Context) {
 		}, "获取成功", c)
 	}
 }
+
+func (testProjectApi *TestProjectApi) BindProject(c *gin.Context) {
+	var project lgjx.Project
+	err := c.ShouldBindJSON(&project)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testProjectService.BindProject(project); err != nil {
+		response.FailWithMessage("绑定失败", c)
+	} else {
+		response.OkWithMessage("绑定成功", c)
+	}
+}
+
+func (testProjectApi *TestProjectApi) UnbindProject(c *gin.Context) {
+	var project lgjx.Project
+	err := c.ShouldBindJSON(&project)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testProjectService.UnbindProject(project); err != nil {
+		response.FailWithMessage("解绑失败", c)
+	} else {
+		response.OkWithMessage("解绑成功", c)
+	}
+}

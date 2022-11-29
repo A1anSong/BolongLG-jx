@@ -22,5 +22,7 @@ func (s *TestProjectRouter) InitProjectRouter(Router *gin.RouterGroup) {
 	{
 		testProjectRouterWithoutRecord.GET("findProject", testProjectApi.FindProject)       // 根据ID获取Project
 		testProjectRouterWithoutRecord.GET("getProjectList", testProjectApi.GetProjectList) // 获取Project列表
+		testProjectRouterWithoutRecord.POST("bindProject", testProjectApi.BindProject)      // 绑定项目
+		testProjectRouterWithoutRecord.POST("unbindProject", testProjectApi.UnbindProject)  // 解绑项目
 	}
 }

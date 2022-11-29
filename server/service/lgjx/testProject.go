@@ -6,6 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
+	"gorm.io/gorm"
 )
 
 type TestProjectService struct {
@@ -55,4 +56,50 @@ func (testProjectService *TestProjectService) GetProjectInfoList(info lgjxReq.Pr
 
 	err = db.Limit(limit).Offset(offset).Find(&projects).Error
 	return projects, total, err
+}
+
+func (testProjectService *TestProjectService) BindProject(project lgjx.Project) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		var orders []lgjx.Order
+		err = tx.Model(&lgjx.Order{}).Joins("Apply").Where("Apply.project_no = ?", project.ProjectNo).Find(&orders).Error
+		if err != nil {
+			return err
+		}
+		for i := range orders {
+			orders[i].ProjectID = &project.ID
+		}
+		err = tx.Save(&orders).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Save(&project).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
+}
+
+func (testProjectService *TestProjectService) UnbindProject(project lgjx.Project) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		var orders []lgjx.Order
+		err = tx.Model(&lgjx.Order{}).Joins("Apply").Where("Apply.project_no = ?", project.ProjectNo).Find(&orders).Error
+		if err != nil {
+			return err
+		}
+		for i := range orders {
+			orders[i].ProjectID = nil
+		}
+		err = tx.Save(&orders).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Save(&project).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
 }

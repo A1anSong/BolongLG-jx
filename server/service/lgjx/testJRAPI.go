@@ -91,6 +91,15 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 		if err = tx.Create(&apply).Error; err != nil {
 			return err
 		}
+		var project lgjx.Project
+		err = tx.Model(&lgjx.Project{}).Where("project_no = ? AND is_enable = TRUE", apply.ProjectNo).First(&project).Error
+		if err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		} else {
+			order.ProjectID = &project.ID
+		}
 		order.ApplyID = &apply.ID
 		if err = tx.Save(&order).Error; err != nil {
 			return err

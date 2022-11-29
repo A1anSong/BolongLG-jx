@@ -47,3 +47,19 @@ export const getProjectList = (params) => {
     params
   })
 }
+
+export const bindProject = (data) => {
+  return service({
+    url: '/testProject/bindProject',
+    method: 'post',
+    data
+  })
+}
+
+export const unbindProject = (data) => {
+  return service({
+    url: '/testProject/unbindProject',
+    method: 'post',
+    data
+  })
+}
