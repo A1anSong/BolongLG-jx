@@ -3,9 +3,9 @@
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
         <el-form-item label="创建时间">
-          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间"/>
+          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间" />
           —
-          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间"/>
+          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间" />
         </el-form-item>
         <el-form-item>
           <el-button size="small" type="primary" icon="search" @click="onSubmit">查询</el-button>
@@ -24,63 +24,63 @@
           </div>
           <template #reference>
             <el-button
-                icon="delete"
-                size="small"
-                style="margin-left: 10px;"
-                :disabled="!multipleSelection.length"
-                @click="deleteVisible = true"
+              icon="delete"
+              size="small"
+              style="margin-left: 10px;"
+              :disabled="!multipleSelection.length"
+              @click="deleteVisible = true"
             >删除
             </el-button>
           </template>
         </el-popover>
       </div>
       <el-table
-          ref="multipleTable"
-          style="width: 100%"
-          tooltip-effect="dark"
-          :data="tableData"
-          row-key="ID"
-          @selection-change="handleSelectionChange"
+        ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :data="tableData"
+        row-key="ID"
+        @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55"/>
+        <el-table-column type="selection" width="55" />
         <el-table-column align="left" label="日期" width="180">
           <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="项目名称" prop="projectName" width="120"/>
-        <el-table-column align="left" label="项目编号" prop="projectNo" width="120"/>
-        <el-table-column align="left" label="项目金额" prop="projectAmount" width="120"/>
-        <el-table-column align="left" label="招标人名称" prop="tendereeName" width="120"/>
-        <el-table-column align="left" label="招标人地址" prop="tendereeAddress" width="120"/>
-        <el-table-column align="left" label="招标人电话" prop="tendereeTel" width="120"/>
-        <el-table-column align="left" label="担保金额" prop="tenderDeposit" width="120"/>
-        <el-table-column align="left" label="项目开标时间" prop="projectOpenTime" width="120"/>
-        <el-table-column align="left" label="项目发布日期" prop="projectPublishTime" width="120"/>
-        <el-table-column align="left" label="所属市" prop="projectCity" width="120"/>
-        <el-table-column align="left" label="所属县" prop="projectCounty" width="120"/>
-        <el-table-column align="left" label="保函有效期" prop="projectDay" width="120"/>
-        <el-table-column align="left" label="投标截止时间" prop="tenderEndDate" width="120"/>
-        <el-table-column align="left" label="项目类型" prop="projectType" width="120"/>
+        <el-table-column align="left" label="项目名称" prop="projectName" width="120" />
+        <el-table-column align="left" label="项目编号" prop="projectNo" width="120" />
+        <el-table-column align="left" label="项目金额" prop="projectAmount" width="120" />
+        <el-table-column align="left" label="招标人名称" prop="tendereeName" width="120" />
+        <el-table-column align="left" label="招标人地址" prop="tendereeAddress" width="120" />
+        <el-table-column align="left" label="招标人电话" prop="tendereeTel" width="120" />
+        <el-table-column align="left" label="担保金额" prop="tenderDeposit" width="120" />
+        <el-table-column align="left" label="项目开标时间" prop="projectOpenTime" width="120" />
+        <el-table-column align="left" label="项目发布日期" prop="projectPublishTime" width="120" />
+        <el-table-column align="left" label="所属市" prop="projectCity" width="120" />
+        <el-table-column align="left" label="所属县" prop="projectCounty" width="120" />
+        <el-table-column align="left" label="保函有效期" prop="projectDay" width="120" />
+        <el-table-column align="left" label="投标截止时间" prop="tenderEndDate" width="120" />
+        <el-table-column align="left" label="项目类型" prop="projectType" width="120" />
         <el-table-column align="left" label="是否启用" width="180">
           <template #default="scope">
             <el-switch
-                v-model="scope.row.isEnable"
-                inline-prompt
-                active-text="是"
-                inactive-text="否"
-                style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-                @change="changeProjectEnable($event, scope.row)"
+              v-model="scope.row.isEnable"
+              inline-prompt
+              active-text="是"
+              inactive-text="否"
+              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+              @change="changeProjectEnable($event, scope.row)"
             />
           </template>
         </el-table-column>
         <el-table-column align="left" label="按钮组" min-width="160">
           <template #default="scope">
             <el-button
-                type="primary"
-                link
-                icon="edit"
-                size="small"
-                class="table-button"
-                @click="updateProjectFunc(scope.row)"
+              type="primary"
+              link
+              icon="edit"
+              size="small"
+              class="table-button"
+              @click="updateProjectFunc(scope.row)"
             >变更
             </el-button>
             <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>
@@ -89,67 +89,85 @@
       </el-table>
       <div class="gva-pagination">
         <el-pagination
-            layout="total, sizes, prev, pager, next, jumper"
-            :current-page="page"
-            :page-size="pageSize"
-            :page-sizes="[10, 30, 50, 100]"
-            :total="total"
-            @current-change="handleCurrentChange"
-            @size-change="handleSizeChange"
+          layout="total, sizes, prev, pager, next, jumper"
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 30, 50, 100]"
+          :total="total"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
       <el-form ref="elFormRef" :model="formData" label-position="right" :rules="rule" label-width="120px">
         <el-form-item label="项目名称:" prop="projectName">
-          <el-input v-model="formData.projectName" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.projectName" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="项目编号:" prop="projectNo">
-          <el-input v-model="formData.projectNo" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.projectNo" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="项目金额:" prop="projectAmount">
-          <el-input-number v-model="formData.projectAmount" style="width:100%" :precision="2" :clearable="true"/>
+          <el-input-number v-model="formData.projectAmount" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
         <el-form-item label="招标人名称:" prop="tendereeName">
-          <el-input v-model="formData.tendereeName" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.tendereeName" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="招标人地址:" prop="tendereeAddress">
-          <el-input v-model="formData.tendereeAddress" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.tendereeAddress" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="招标人电话:" prop="tendereeTel">
-          <el-input v-model="formData.tendereeTel" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.tendereeTel" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="担保金额:" prop="tenderDeposit">
-          <el-input-number v-model="formData.tenderDeposit" style="width:100%" :precision="2" :clearable="true"/>
+          <el-input-number v-model="formData.tenderDeposit" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
         <el-form-item label="项目开标时间:" prop="projectOpenTime">
-          <el-input v-model="formData.projectOpenTime" :clearable="true" placeholder="请输入"/>
+          <el-date-picker
+            v-model="formData.projectOpenTime"
+            type="datetime"
+            placeholder="请输入"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="项目发布日期:" prop="projectPublishTime">
-          <el-input v-model="formData.projectPublishTime" :clearable="true" placeholder="请输入"/>
+          <el-date-picker
+            v-model="formData.projectPublishTime"
+            type="datetime"
+            placeholder="请输入"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="所属市:" prop="projectCity">
-          <el-input v-model="formData.projectCity" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.projectCity" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="所属县:" prop="projectCounty">
-          <el-input v-model="formData.projectCounty" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.projectCounty" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="保函有效期:" prop="projectDay">
-          <el-input v-model.number="formData.projectDay" :clearable="true" placeholder="请输入"/>
+          <el-input v-model.number="formData.projectDay" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="投标截止时间:" prop="tenderEndDate">
-          <el-input v-model="formData.tenderEndDate" :clearable="true" placeholder="请输入"/>
+          <el-date-picker
+            v-model="formData.tenderEndDate"
+            type="datetime"
+            placeholder="请输入"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="项目类型:" prop="projectType">
-          <el-input v-model="formData.projectType" :clearable="true" placeholder="请输入"/>
+          <el-input v-model="formData.projectType" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="项目模板:" prop="templateID">
           <el-select v-model="formData.templateID" clearable placeholder="请输入" style="width: 100%">
             <el-option
-                v-for="template in templateData"
-                :key="template.ID"
-                :label="template.templateName"
-                :value="template.ID"
+              v-for="template in templateData"
+              :key="template.ID"
+              :label="template.templateName"
+              :value="template.ID"
             />
           </el-select>
         </el-form-item>
@@ -183,10 +201,10 @@ import {
 } from '@/api/testProject'
 
 // 全量引入格式化工具 请按需保留
-import {getDictFunc, formatDate, formatBoolean, filterDict} from '@/utils/format'
-import {ElMessage, ElMessageBox} from 'element-plus'
-import {ref, reactive} from 'vue'
-import {getTemplateList} from '@/api/testTemplate'
+import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, reactive } from 'vue'
+import { getTemplateList } from '@/api/testTemplate'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -247,8 +265,8 @@ const handleCurrentChange = (val) => {
 }
 
 // 查询
-const getTableData = async () => {
-  const table = await getProjectList({page: page.value, pageSize: pageSize.value, ...searchInfo.value})
+const getTableData = async() => {
+  const table = await getProjectList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
     tableData.value = table.data.list
     total.value = table.data.total
@@ -258,8 +276,8 @@ const getTableData = async () => {
 }
 
 // 获取模板列表
-const getTemplateData = async () => {
-  const template = await getTemplateList({page: 1, pageSize: 999})
+const getTemplateData = async() => {
+  const template = await getTemplateList({ page: 1, pageSize: 999 })
   if (template.code === 0) {
     templateData.value = template.data.list
   }
@@ -271,7 +289,7 @@ getTableData()
 // ============== 表格控制部分结束 ===============
 
 // 获取需要的字典 可能为空 按需保留
-const setOptions = async () => {
+const setOptions = async() => {
 }
 
 // 获取需要的字典 可能为空 按需保留
@@ -299,7 +317,7 @@ const deleteRow = (row) => {
 const deleteVisible = ref(false)
 
 // 多选删除
-const onDelete = async () => {
+const onDelete = async() => {
   const ids = []
   if (multipleSelection.value.length === 0) {
     ElMessage({
@@ -312,7 +330,7 @@ const onDelete = async () => {
   multipleSelection.value.map(item => {
     ids.push(item.ID)
   })
-  const res = await deleteProjectByIds({ids})
+  const res = await deleteProjectByIds({ ids })
   if (res.code === 0) {
     ElMessage({
       type: 'success',
@@ -330,8 +348,8 @@ const onDelete = async () => {
 const type = ref('')
 
 // 更新行
-const updateProjectFunc = async (row) => {
-  const res = await findProject({ID: row.ID})
+const updateProjectFunc = async(row) => {
+  const res = await findProject({ ID: row.ID })
   type.value = 'update'
   if (res.code === 0) {
     formData.value = res.data.reproject
@@ -340,8 +358,8 @@ const updateProjectFunc = async (row) => {
 }
 
 // 删除行
-const deleteProjectFunc = async (row) => {
-  const res = await deleteProject({ID: row.ID})
+const deleteProjectFunc = async(row) => {
+  const res = await deleteProject({ ID: row.ID })
   if (res.code === 0) {
     ElMessage({
       type: 'success',
@@ -367,25 +385,27 @@ const openDialog = () => {
 const closeDialog = () => {
   dialogFormVisible.value = false
   formData.value = {
-    projectName: '',
-    projectNo: '',
-    projectAmount: 0,
-    tendereeName: '',
-    tendereeAddress: '',
-    tendereeTel: '',
-    tenderDeposit: 0,
-    projectOpenTime: '',
-    projectPublishTime: '',
-    projectCity: '',
-    projectCounty: '',
-    projectDay: 0,
-    tenderEndDate: '',
-    projectType: '',
+    projectName: null,
+    projectNo: null,
+    projectAmount: null,
+    tendereeName: null,
+    tendereeAddress: null,
+    tendereeTel: null,
+    tenderDeposit: null,
+    projectOpenTime: null,
+    projectPublishTime: null,
+    projectCity: null,
+    projectCounty: null,
+    projectDay: null,
+    tenderEndDate: null,
+    projectType: null,
+    templateID: null,
+    isEnable: false,
   }
 }
 // 弹窗确定
-const enterDialog = async () => {
-  elFormRef.value?.validate(async (valid) => {
+const enterDialog = async() => {
+  elFormRef.value?.validate(async(valid) => {
     if (!valid) return
     let res
     switch (type.value) {
@@ -410,7 +430,7 @@ const enterDialog = async () => {
   })
 }
 
-const changeProjectEnable = async (val, row) => {
+const changeProjectEnable = async(val, row) => {
   if (val === true) {
     const res = await bindProject(row)
     if (res.code === 0) {
