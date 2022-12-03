@@ -65,12 +65,14 @@ func (testProjectService *TestProjectService) BindProject(project lgjx.Project) 
 		if err != nil {
 			return err
 		}
-		for i := range orders {
-			orders[i].ProjectID = &project.ID
-		}
-		err = tx.Save(&orders).Error
-		if err != nil {
-			return err
+		if len(orders) > 0 {
+			for i := range orders {
+				orders[i].ProjectID = &project.ID
+			}
+			err = tx.Save(&orders).Error
+			if err != nil {
+				return err
+			}
 		}
 		err = tx.Save(&project).Error
 		if err != nil {
@@ -88,12 +90,14 @@ func (testProjectService *TestProjectService) UnbindProject(project lgjx.Project
 		if err != nil {
 			return err
 		}
-		for i := range orders {
-			orders[i].ProjectID = nil
-		}
-		err = tx.Save(&orders).Error
-		if err != nil {
-			return err
+		if len(orders) > 0 {
+			for i := range orders {
+				orders[i].ProjectID = nil
+			}
+			err = tx.Save(&orders).Error
+			if err != nil {
+				return err
+			}
 		}
 		err = tx.Save(&project).Error
 		if err != nil {

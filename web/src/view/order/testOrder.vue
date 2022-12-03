@@ -162,11 +162,11 @@
                     }}
                     </el-descriptions-item>
                     <el-descriptions-item label="所属市">{{
-                      scope.row.project != null && scope.row.project.city !== undefined ? scope.row.project.city : ''
+                      scope.row.project != null && scope.row.project.projectCity !== undefined ? scope.row.project.projectCity : ''
                     }}
                     </el-descriptions-item>
                     <el-descriptions-item label="所属县">{{
-                      scope.row.project != null && scope.row.project.county !== undefined ? scope.row.project.county : ''
+                      scope.row.project != null && scope.row.project.projectCounty !== undefined ? scope.row.project.projectCounty : ''
                     }}
                     </el-descriptions-item>
                     <el-descriptions-item label="受益人名称">{{ scope.row.apply.insuredName }}</el-descriptions-item>
@@ -310,7 +310,7 @@
           <el-table-column align="center" label="担保金额" min-width="120px">
             <template #default="scope">{{ amount(scope.row.apply.tenderDeposit) }}</template>
           </el-table-column>
-          <el-table-column align="center" label="所属市" prop="project" min-width="120px" />
+          <el-table-column align="center" label="所属市" prop="project.projectCity" min-width="120px" />
           <el-table-column align="center" label="保函格式名称" prop="apply.elogTemplateName" min-width="120px" />
         </el-table-column>
         <el-table-column align="center" label="申请人信息">
