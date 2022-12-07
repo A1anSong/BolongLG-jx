@@ -72,7 +72,7 @@
             />
           </template>
         </el-table-column>
-        <el-table-column align="left" label="按钮组" min-width="160">
+        <el-table-column align="left" label="项目详情" min-width="160" fixed="right">
           <template #default="scope">
             <el-button
               type="primary"

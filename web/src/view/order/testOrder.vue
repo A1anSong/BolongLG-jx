@@ -245,8 +245,8 @@
                     }}
                     </el-descriptions-item>
                     <el-descriptions-item label="出函时间">{{ scope.row.letter.elogOutDate }}</el-descriptions-item>
-                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'https://lg.a1ansong.com/test/lg/letterFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
-                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'https://lg.a1ansong.com/test/lg/letterFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
+                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
+                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
                     <el-descriptions-item label="担保金额">{{ scope.row.letter.tenderDeposit }}</el-descriptions-item>
                     <el-descriptions-item label="担保开始时间">{{ scope.row.letter.insureStartDate }}</el-descriptions-item>
                     <el-descriptions-item label="担保截止时间">{{ scope.row.letter.insureEndDate }}</el-descriptions-item>

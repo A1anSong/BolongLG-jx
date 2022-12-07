@@ -241,7 +241,7 @@ func (testOrderService *TestOrderService) ExportExcel(info lgjxReq.OrderSearch) 
 		var letterOpenDate string
 		var elogNo string
 		if order.LetterID != nil {
-			elogUrl = "https://lg.a1ansong.com/test/lg/letterFileDownload?elog=" + *order.Letter.ElogUrl
+			elogUrl = global.GVA_CONFIG.Insurance.APIDoaminTest + "letterFileDownload?elog=" + *order.Letter.ElogUrl
 			insureStartDate = *order.Letter.InsureStartDate
 			insureEndDate = *order.Letter.InsureEndDate
 			letterOpenDate = order.Letter.CreatedAt.Format("2006-01-02 15:04:05")

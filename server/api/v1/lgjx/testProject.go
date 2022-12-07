@@ -119,6 +119,7 @@ func (testProjectApi *TestProjectApi) BindProject(c *gin.Context) {
 		return
 	}
 	if err := testProjectService.BindProject(project); err != nil {
+		global.GVA_LOG.Error("绑定失败!", zap.Error(err))
 		response.FailWithMessage("绑定失败", c)
 	} else {
 		response.OkWithMessage("绑定成功", c)
@@ -133,6 +134,7 @@ func (testProjectApi *TestProjectApi) UnbindProject(c *gin.Context) {
 		return
 	}
 	if err := testProjectService.UnbindProject(project); err != nil {
+		global.GVA_LOG.Error("解绑失败!", zap.Error(err))
 		response.FailWithMessage("解绑失败", c)
 	} else {
 		response.OkWithMessage("解绑成功", c)

@@ -76,7 +76,6 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Project{},
 		lgjx.Template{},
 		lgjx.File{},
-		lgjx.Setting{},
 	)
 
 	if err != nil {
@@ -99,7 +98,6 @@ func RegisterTables(db *gorm.DB) {
 		lgjx.Project{},
 		lgjx.Template{},
 		lgjx.File{},
-		lgjx.Setting{},
 	)
 
 	if err != nil {

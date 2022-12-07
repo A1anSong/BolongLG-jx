@@ -2,6 +2,7 @@ package lgjx
 
 import (
 	"fmt"
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	"github.com/nguyenthenguyen/docx"
 	"io"
@@ -12,9 +13,8 @@ import (
 )
 
 func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, file lgjx.File, encryptFile lgjx.File, err error) {
-	basePath := "./tmp/"
 	fileName := strconv.FormatInt(time.Now().UnixNano(), 10)
-	out, err := os.Create(basePath + fileName + ".docx")
+	out, err := os.Create(global.GVA_CONFIG.Insurance.TempDir + fileName + ".docx")
 	if err != nil {
 		return
 	}
@@ -36,17 +36,17 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, f
 	insureEndDate := currentTime.AddDate(0, 0, 15).Format("2006-01-02 15:04:05")
 	var insureDay int64 = 15
 	validateCode := urlString[12:20]
-	insuranceName := "XXXX担保公司"
-	insuranceCreditCode := "CNXKeCQaEDydwjK5tC"
-	insuranceAddress := "XXX担保公司地址"
-	insuranceZipCode := "330000"
-	insuranceTel := "13813813800"
+	insuranceName := global.GVA_CONFIG.Insurance.Name
+	insuranceCreditCode := global.GVA_CONFIG.Insurance.CreditCode
+	insuranceAddress := global.GVA_CONFIG.Insurance.Address
+	insuranceZipCode := global.GVA_CONFIG.Insurance.ZipCode
+	insuranceTel := global.GVA_CONFIG.Insurance.Tel
 	tenderDepositString := fmt.Sprintf("%.2f", *order.Apply.TenderDeposit)
 	tenderDepositStringFixed, _ := strconv.ParseFloat(tenderDepositString, 64)
 	tenderDepositCNYString := ConvertNumToCny(tenderDepositStringFixed)
 	year, month, day := time.Now().Date()
 
-	letterReader, _ := docx.ReadDocxFile(basePath + fileName + ".docx")
+	letterReader, _ := docx.ReadDocxFile(global.GVA_CONFIG.Insurance.TempDir + fileName + ".docx")
 	letterDocx := letterReader.Editable()
 	_ = letterDocx.Replace("{elogNo}", elogNo, -1)
 	_ = letterDocx.Replace("{insuredName}", *order.Apply.InsuredName, -1)
@@ -62,9 +62,9 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, f
 	_ = letterDocx.Replace("{year}", strconv.Itoa(year), -1)
 	_ = letterDocx.Replace("{month}", strconv.Itoa(int(month)), -1)
 	_ = letterDocx.Replace("{day}", strconv.Itoa(day), -1)
-	_ = letterDocx.WriteToFile(basePath + "letter" + fileName + ".docx")
+	_ = letterDocx.WriteToFile(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + ".docx")
 
-	letterEncryptReader, _ := docx.ReadDocxFile(basePath + fileName + ".docx")
+	letterEncryptReader, _ := docx.ReadDocxFile(global.GVA_CONFIG.Insurance.TempDir + fileName + ".docx")
 	letterEncryptDocx := letterEncryptReader.Editable()
 	_ = letterEncryptDocx.Replace("{elogNo}", elogNo, -1)
 	_ = letterEncryptDocx.Replace("{insuredName}", "**********", -1)
@@ -80,37 +80,37 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, f
 	_ = letterEncryptDocx.Replace("{year}", strconv.Itoa(year), -1)
 	_ = letterEncryptDocx.Replace("{month}", strconv.Itoa(int(month)), -1)
 	_ = letterEncryptDocx.Replace("{day}", strconv.Itoa(day), -1)
-	_ = letterEncryptDocx.WriteToFile(basePath + "letter" + fileName + "encrypt.docx")
+	_ = letterEncryptDocx.WriteToFile(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + "encrypt.docx")
 
-	_ = os.Remove(basePath + fileName + ".docx")
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + fileName + ".docx")
 
-	err = exec.Command("libreoffice", "--headless", "--convert-to", "pdf", basePath+"letter"+fileName+".docx", "--outdir", basePath).Run()
+	err = exec.Command("libreoffice", "--headless", "--convert-to", "pdf", global.GVA_CONFIG.Insurance.TempDir+"letter"+fileName+".docx", "--outdir", global.GVA_CONFIG.Insurance.TempDir).Run()
 	if err != nil {
 		return
 	}
-	err = exec.Command("libreoffice", "--headless", "--convert-to", "pdf", basePath+"letter"+fileName+"encrypt.docx", "--outdir", basePath).Run()
-	if err != nil {
-		return
-	}
-
-	_ = os.Remove(basePath + "letter" + fileName + ".docx")
-	_ = os.Remove(basePath + "letter" + fileName + "encrypt.docx")
-
-	err = exec.Command("java", "-jar", "jxblSignature.jar", "./jxbl/jxbl.p12", basePath+"letter"+fileName+".pdf", basePath+"letter"+fileName+"Signed.pdf", "./jxbl/stamp.png").Run()
-	if err != nil {
-		return
-	}
-	err = exec.Command("java", "-jar", "jxblSignature.jar", "./jxbl/jxbl.p12", basePath+"letter"+fileName+"encrypt.pdf", basePath+"letter"+fileName+"encryptSigned.pdf", "./jxbl/stamp.png").Run()
+	err = exec.Command("libreoffice", "--headless", "--convert-to", "pdf", global.GVA_CONFIG.Insurance.TempDir+"letter"+fileName+"encrypt.docx", "--outdir", global.GVA_CONFIG.Insurance.TempDir).Run()
 	if err != nil {
 		return
 	}
 
-	_ = os.Remove(basePath + "letter" + fileName + ".pdf")
-	_ = os.Remove(basePath + "letter" + fileName + "encrypt.pdf")
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + ".docx")
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + "encrypt.docx")
+
+	err = exec.Command("java", "-jar", global.GVA_CONFIG.Insurance.SignProgram, global.GVA_CONFIG.Insurance.KeyFile, global.GVA_CONFIG.Insurance.TempDir+"letter"+fileName+".pdf", global.GVA_CONFIG.Insurance.TempDir+"letter"+fileName+"Signed.pdf", global.GVA_CONFIG.Insurance.StampFile).Run()
+	if err != nil {
+		return
+	}
+	err = exec.Command("java", "-jar", global.GVA_CONFIG.Insurance.SignProgram, global.GVA_CONFIG.Insurance.KeyFile, global.GVA_CONFIG.Insurance.TempDir+"letter"+fileName+"encrypt.pdf", global.GVA_CONFIG.Insurance.TempDir+"letter"+fileName+"encryptSigned.pdf", global.GVA_CONFIG.Insurance.StampFile).Run()
+	if err != nil {
+		return
+	}
+
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + ".pdf")
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + "encrypt.pdf")
 
 	letterFileName := "letter" + fileName + "Signed.pdf"
 	encryptLetterFileName := "letter" + fileName + "encryptSigned.pdf"
-	letterFile, err := os.Open(basePath + letterFileName)
+	letterFile, err := os.Open(global.GVA_CONFIG.Insurance.TempDir + letterFileName)
 	if err != nil {
 		return
 	}
@@ -121,7 +121,7 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, f
 	if err != nil {
 		return
 	}
-	encryptLetterFile, err := os.Open(basePath + encryptLetterFileName)
+	encryptLetterFile, err := os.Open(global.GVA_CONFIG.Insurance.TempDir + encryptLetterFileName)
 	if err != nil {
 		return
 	}
@@ -141,8 +141,8 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File) (letter lgjx.Letter, f
 		FileName:  &encryptLetterFileName,
 		FileSteam: encryptLetterFileContent,
 	}
-	_ = os.Remove(basePath + letterFileName)
-	_ = os.Remove(basePath + encryptLetterFileName)
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + letterFileName)
+	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + encryptLetterFileName)
 	letter = lgjx.Letter{
 		OrderID:             &order.ID,
 		OrderNo:             order.OrderNo,
