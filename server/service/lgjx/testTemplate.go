@@ -83,6 +83,6 @@ func (testTemplateService *TestTemplateService) GetTemplateInfoList(info lgjxReq
 		return
 	}
 
-	err = db.Limit(limit).Preload(clause.Associations).Offset(offset).Find(&templates).Error
+	err = db.Limit(limit).Preload(clause.Associations).Order("created_at desc").Offset(offset).Find(&templates).Error
 	return templates, total, err
 }

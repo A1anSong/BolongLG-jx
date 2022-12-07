@@ -54,7 +54,7 @@ func (testProjectService *TestProjectService) GetProjectInfoList(info lgjxReq.Pr
 		return
 	}
 
-	err = db.Limit(limit).Offset(offset).Find(&projects).Error
+	err = db.Limit(limit).Order("created_at desc").Offset(offset).Find(&projects).Error
 	return projects, total, err
 }
 

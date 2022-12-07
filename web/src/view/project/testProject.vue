@@ -52,6 +52,7 @@
         <el-table-column align="left" label="招标人名称" prop="tendereeName" width="120" />
         <el-table-column align="left" label="招标人地址" prop="tendereeAddress" width="120" />
         <el-table-column align="left" label="招标人电话" prop="tendereeTel" width="120" />
+        <el-table-column align="left" label="招标代理电话" prop="agentTel" width="120" />
         <el-table-column align="left" label="担保金额" prop="tenderDeposit" width="120" />
         <el-table-column align="left" label="项目开标时间" prop="projectOpenTime" width="120" />
         <el-table-column align="left" label="项目发布日期" prop="projectPublishTime" width="120" />
@@ -116,8 +117,11 @@
         <el-form-item label="招标人地址:" prop="tendereeAddress">
           <el-input v-model="formData.tendereeAddress" :clearable="true" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="招标人电话:" prop="tendereeTel">
+        <el-form-item label="招标人电话:" prop="agentTel">
           <el-input v-model="formData.tendereeTel" :clearable="true" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="招标代理电话:" prop="agentTel">
+          <el-input v-model="formData.agentTel" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="担保金额:" prop="tenderDeposit">
           <el-input-number v-model="formData.tenderDeposit" style="width:100%" :precision="2" :clearable="true" />
@@ -214,6 +218,7 @@ const formData = ref({
   tendereeName: null,
   tendereeAddress: null,
   tendereeTel: null,
+  agentTel: null,
   tenderDeposit: null,
   projectOpenTime: null,
   projectPublishTime: null,
@@ -391,6 +396,7 @@ const closeDialog = () => {
     tendereeName: null,
     tendereeAddress: null,
     tendereeTel: null,
+    agentTel: null,
     tenderDeposit: null,
     projectOpenTime: null,
     projectPublishTime: null,
