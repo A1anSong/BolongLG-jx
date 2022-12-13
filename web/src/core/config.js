@@ -3,7 +3,7 @@
  */
 
 const config = {
-  appName: '博珑科技',
+  appName: '南昌赣腾',
   appLogo: 'https://www.gin-vue-admin.com/img/logo.png',
   showViteLogo: true
 }

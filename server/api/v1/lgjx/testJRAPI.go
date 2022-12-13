@@ -6,6 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrrequest"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -35,7 +36,16 @@ func (testJRAPI *TestJRAPI) Apply(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resApply)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resApply); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -59,7 +69,16 @@ func (testJRAPI *TestJRAPI) PayPush(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resPayPush)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resPayPush); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -83,7 +102,16 @@ func (testJRAPI *TestJRAPI) QueryInfo(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resQueryInfo)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resQueryInfo); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -107,7 +135,16 @@ func (testJRAPI *TestJRAPI) RevokePush(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resRevokePush)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resRevokePush); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -131,7 +168,16 @@ func (testJRAPI *TestJRAPI) ApplyDelay(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resApplyDelay)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resApplyDelay); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -155,7 +201,16 @@ func (testJRAPI *TestJRAPI) ApplyRefund(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resApplyRefund)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resApplyRefund); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -179,7 +234,16 @@ func (testJRAPI *TestJRAPI) ApplyClaim(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resApplyClaim)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resApplyClaim); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -203,7 +267,16 @@ func (testJRAPI *TestJRAPI) LogoutPush(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resLogoutPush)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resLogoutPush); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -227,7 +300,16 @@ func (testJRAPI *TestJRAPI) ApplyInvoice(c *gin.Context) {
 			Data: "",
 		})
 	} else {
-		c.JSON(http.StatusOK, resApplyInvoice)
+		var response jrresponse.JRResponse
+		if response, err = lgjx.GenJRResponse(resApplyInvoice); err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: -1,
+				Msg:  "resApply序列化失败",
+				Data: "",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
 	}
 }
 

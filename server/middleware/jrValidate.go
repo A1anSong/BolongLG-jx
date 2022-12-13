@@ -5,6 +5,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrrequest"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -22,7 +23,17 @@ func JRValidate() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// TODO: 这里写sm3验证流程
+		// sm3验签
+		if request.Signature != lgjx.SM3Sign("appKey="+request.AppKey+"&data="+request.Data+"&requestId="+request.RequestId+"&timestamp="+request.TimeStamp) {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: int(jrapi.SignCheckFailed),
+				Msg:  jrapi.SignCheckFailed.String(),
+				Data: "",
+			})
+			c.Abort()
+			return
+		}
+		// 提取data
 		byteEncryptData, err := base64.StdEncoding.DecodeString(request.Data)
 		if err != nil {
 			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
@@ -33,8 +44,17 @@ func JRValidate() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// TODO: 这里写sm4解密流程
-		jsonData := byteEncryptData
+		// sm4解密
+		jsonData, err := lgjx.Sm4Decrypt(byteEncryptData)
+		if err != nil {
+			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+				Code: int(jrapi.DecryptFailed),
+				Msg:  jrapi.DecryptFailed.String(),
+				Data: "",
+			})
+			c.Abort()
+			return
+		}
 		c.Set("jsonData", jsonData)
 		c.Next()
 	}

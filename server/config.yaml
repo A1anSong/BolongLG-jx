@@ -192,5 +192,11 @@ insurance:
   key-file: ./jxbl/jxbl.p12
   stamp-file: ./jxbl/stamp.png
   sign-program: ./jxblSignature.jar
-  api-domain: https://lg.a1ansong.com/lg/
-  api-domain-test: https://lg.a1ansong.com/test/lg
+  api-domain: https://lg.jxbolong.cn/lg/
+  api-domain-test: https://lg.jxbolong.cn/test/lg
+  jr-api-domain: ""
+  jr-api-domain-test: ""
+  app-key: EPF-ELOG
+  app-secret: 12345678ABCDEFGH
+  elog-rate: 0.0006
+  elog-min-amount: 600

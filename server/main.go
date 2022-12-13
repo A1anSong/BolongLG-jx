@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/core"
@@ -34,5 +36,6 @@ func main() {
 		db, _ := global.GVA_DB.DB()
 		defer db.Close()
 	}
+	fmt.Println(uuid.NewV4().String())
 	core.RunWindowsServer()
 }

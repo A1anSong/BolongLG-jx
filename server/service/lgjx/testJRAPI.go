@@ -9,6 +9,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
 	lgjx2 "github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -127,7 +128,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		var order lgjx.Order
-		if err = tx.Where("order_no = ?", rePayPush.OrderNo).First(&order).Error; err != nil {
+		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload(clause.Associations).First(&order).Error; err != nil {
 			return err
 		}
 		pay := &lgjx.Pay{
@@ -150,9 +151,6 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 			ReceiveResult: &receiveResult,
 		}
 
-		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload("Apply").First(&order).Error; err != nil {
-			return err
-		}
 		var templateFile lgjx.File
 		if err = tx.First(&templateFile).Error; err != nil {
 			return err
