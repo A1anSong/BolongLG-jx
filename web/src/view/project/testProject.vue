@@ -61,6 +61,7 @@
         <el-table-column align="left" label="保函有效期" prop="projectDay" width="120" />
         <el-table-column align="left" label="投标截止时间" prop="tenderEndDate" width="120" />
         <el-table-column align="left" label="项目类型" prop="projectType" width="120" />
+        <el-table-column align="left" label="项目类别" prop="projectCategory" width="120" />
         <el-table-column align="left" label="是否启用" width="180">
           <template #default="scope">
             <el-switch
@@ -165,6 +166,9 @@
         <el-form-item label="项目类型:" prop="projectType">
           <el-input v-model="formData.projectType" :clearable="true" placeholder="请输入" />
         </el-form-item>
+        <el-form-item label="项目类别:" prop="projectType">
+          <el-input v-model="formData.projectCategory" :clearable="true" placeholder="请输入" />
+        </el-form-item>
         <el-form-item label="项目模板:" prop="templateID">
           <el-select v-model="formData.templateID" clearable placeholder="请输入" style="width: 100%">
             <el-option
@@ -227,6 +231,7 @@ const formData = ref({
   projectDay: null,
   tenderEndDate: null,
   projectType: null,
+  projectCategory: null,
   templateID: null,
   isEnable: false,
 })
@@ -405,6 +410,7 @@ const closeDialog = () => {
     projectDay: null,
     tenderEndDate: null,
     projectType: null,
+    projectCategory: null,
     templateID: null,
     isEnable: false,
   }

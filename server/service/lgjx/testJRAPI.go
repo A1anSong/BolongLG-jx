@@ -159,7 +159,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		var letter lgjx.Letter
 		var file lgjx.File
 		var encryptFile lgjx.File
-		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile); err != nil {
+		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
 			return err
 		}
 		if err = tx.Create(&file).Error; err != nil {
