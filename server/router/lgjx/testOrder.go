@@ -17,7 +17,14 @@ func (s *TestOrderRouter) InitOrderRouter(Router *gin.RouterGroup) {
 		testOrderRouter.POST("createOrder", testOrderApi.CreateOrder)             // 新建Order
 		testOrderRouter.DELETE("deleteOrder", testOrderApi.DeleteOrder)           // 删除Order
 		testOrderRouter.DELETE("deleteOrderByIds", testOrderApi.DeleteOrderByIds) // 批量删除Order
-		testOrderRouter.PUT("updateOrder", testOrderApi.UpdateOrder)              // 更新Order
+		testOrderRouter.PUT("approveApply", testOrderApi.ApproveApply)            // 审批同意申请
+		testOrderRouter.PUT("rejectApply", testOrderApi.RejectApply)              // 审批拒绝申请
+		testOrderRouter.PUT("approveDelay", testOrderApi.ApproveDelay)            // 审批同意延期
+		testOrderRouter.PUT("rejectDelay", testOrderApi.RejectDelay)              // 审批拒绝延期
+		testOrderRouter.PUT("approveRefund", testOrderApi.ApproveRefund)          // 审批同意退函
+		testOrderRouter.PUT("rejectRefund", testOrderApi.RejectRefund)            // 审批拒绝退函
+		testOrderRouter.PUT("approveClaim", testOrderApi.ApproveClaim)            // 审批同意理赔
+		testOrderRouter.PUT("rejectClaim", testOrderApi.RejectClaim)              // 审批拒绝理赔
 	}
 	{
 		testOrderRouterWithoutRecord.GET("findOrder", testOrderApi.FindOrder)                         // 根据ID获取Order

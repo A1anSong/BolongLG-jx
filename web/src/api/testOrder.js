@@ -49,6 +49,70 @@ export const getOrderList = (params) => {
   })
 }
 
+export const approveApply = (data) => {
+  return service({
+    url: '/testOrder/approveApply',
+    method: 'put',
+    data
+  })
+}
+
+export const rejectApply = (data) => {
+  return service({
+    url: '/testOrder/rejectApply',
+    method: 'put',
+    data
+  })
+}
+
+export const approveDelay = (data) => {
+  return service({
+    url: '/testOrder/approveDelay',
+    method: 'put',
+    data
+  })
+}
+
+export const rejectDelay = (data) => {
+  return service({
+    url: '/testOrder/rejectDelay',
+    method: 'put',
+    data
+  })
+}
+
+export const approveRefund = (data) => {
+  return service({
+    url: '/testOrder/approveRefund',
+    method: 'put',
+    data
+  })
+}
+
+export const rejectRefund = (data) => {
+  return service({
+    url: '/testOrder/rejectRefund',
+    method: 'put',
+    data
+  })
+}
+
+export const approveClaim = (data) => {
+  return service({
+    url: '/testOrder/approveClaim',
+    method: 'put',
+    data
+  })
+}
+
+export const rejectClaim = (data) => {
+  return service({
+    url: '/testOrder/rejectClaim',
+    method: 'put',
+    data
+  })
+}
+
 export const getOrderStatisticData = (params) => {
   return service({
     url: '/testOrder/getOrderStatisticData',

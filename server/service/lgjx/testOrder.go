@@ -1,6 +1,7 @@
 package lgjx
 
 import (
+	"errors"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
@@ -8,9 +9,14 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/nonmigrate"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
 	lgjx2 "github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
+	"github.com/go-resty/resty/v2"
 	"github.com/xuri/excelize/v2"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"math"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 type TestOrderService struct {
@@ -129,6 +135,103 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 
 	err = db.Limit(limit).Preload(clause.Associations).Order("order.created_at desc").Offset(offset).Find(&orders).Error
 	return orders, total, err
+}
+
+func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(2)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Apply.AuditStatus = &auditStatus
+		order.Apply.AuditOpinion = &auditOpinion
+		order.Apply.AuditDate = &auditDate
+		realAmount := math.Trunc(*order.Project.TenderDeposit*global.GVA_CONFIG.Insurance.ElogRate*1e2+0.5) * 1e-2
+		if realAmount < global.GVA_CONFIG.Insurance.ElogMinAmount {
+			order.Apply.RealElogAmount = &global.GVA_CONFIG.Insurance.ElogMinAmount
+		} else {
+			order.Apply.RealElogAmount = &realAmount
+		}
+		order.Apply.RealElogRate = &global.GVA_CONFIG.Insurance.ElogRate
+		order.Apply.InsuranceName = &global.GVA_CONFIG.Insurance.Name
+		order.Apply.InsuranceCreditCode = &global.GVA_CONFIG.Insurance.CreditCode
+		err := tx.Save(&order.Apply).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			client := resty.New()
+			resp, err := client.R().
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + "/jrapi/lg/applyPush")
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				// TODO: 解析交易中心返回的内容并判断
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) RejectClaim(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+
+		return nil
+	})
+	return err
 }
 
 func (testOrderService *TestOrderService) GetOrderStatisticData() (orderStatisticData nonmigrate.OrderStatisticData, err error) {

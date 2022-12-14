@@ -184,7 +184,7 @@ zap:
   log-in-console: true
 insurance:
   name: 玉山县玉清融资担保有限责任公司
-  credit-code: 玉山县玉清融资担保有限责任公司社会信用代码
+  credit-code: 1234567890abcdefgh
   address: 玉山县玉清融资担保有限责任公司地址
   zip-code: '000000'
   tel: 13800138000

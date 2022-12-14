@@ -114,6 +114,126 @@ func (testTestOrderApi *TestOrderApi) GetOrderList(c *gin.Context) {
 	}
 }
 
+func (testTestOrderApi *TestOrderApi) ApproveApply(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.ApproveApply(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) RejectApply(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.RejectApply(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) ApproveDelay(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.ApproveDelay(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) RejectDelay(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.RejectDelay(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) ApproveRefund(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.ApproveRefund(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) RejectRefund(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.RejectRefund(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) ApproveClaim(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.ApproveClaim(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testTestOrderApi *TestOrderApi) RejectClaim(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.RejectClaim(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
 func (testTestOrderApi *TestOrderApi) GetOrderStatisticData(c *gin.Context) {
 	if orderStatisticData, err := testOrderService.GetOrderStatisticData(); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))
