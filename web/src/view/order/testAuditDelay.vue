@@ -367,21 +367,42 @@
         <el-table-column align="center" label="操作" min-width="200" fixed="right">
           <template #default="scope">
             <el-button
-              v-if="scope.row.delay.auditStatus===1"
+              v-if="scope.row.delay.auditStatus===1 && scope.row.project"
               type="success"
               icon="select"
               size="small"
-              @click="updateDelayFunc(scope.row.apply,2)"
+              @click="approveDelayFunc(scope.row)"
             >通过
             </el-button>
             <el-button
-              v-if="scope.row.delay.auditStatus===1"
+              v-if="scope.row.delay.auditStatus===1 && scope.row.project"
               type="danger"
               icon="closeBold"
               size="small"
-              @click="updateDelayFunc(scope.row.apply,3)"
+              @click="rejectDelayFunc(scope.row)"
             >拒绝
             </el-button>
+            <el-tag
+              v-if="scope.row.delay.auditStatus===2"
+              type="success"
+              effect="dark"
+              size="large"
+            >已审批通过
+            </el-tag>
+            <el-tag
+              v-if="scope.row.delay.auditStatus===3"
+              type="danger"
+              effect="dark"
+              size="large"
+            >已审批拒绝
+            </el-tag>
+            <el-tag
+              v-if="scope.row.project === null && scope.row.delay.auditStatus===1"
+              type="info"
+              effect="dark"
+              size="large"
+            >待绑定项目才后可审核
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -426,7 +447,9 @@ import {
   deleteOrderByIds,
   updateOrder,
   findOrder,
-  getOrderList
+  getOrderList,
+  approveDelay,
+  rejectDelay
 } from '@/api/testOrder'
 
 import { updateApply } from '@/api/testApply'
@@ -638,23 +661,38 @@ const enterDialog = async() => {
   })
 }
 
-const updateDelayFunc = async(apply, status) => {
-  // apply.auditStatus = status
-  // apply.auditOpinion = ''
-  // apply.auditDate = date(new Date())
-  // apply.realElogRate = 0.0006
-  // apply.realElogAmount = Math.round(apply.tenderDeposit * apply.realElogRate * 100) / 100
-  // apply.realElogAmount = apply.realElogAmount > 60 ? apply.realElogAmount : 60
-  // apply.insuranceName = 'XXX担保公司'
-  // apply.insuranceCreditCode = 'TkeAijrww5tiBmsyhZ'
-  // const res = await updateApply(apply)
-  if (res.code === 0) {
-    ElMessage({
-      type: 'success',
-      message: '创建/更改成功'
-    })
-    getTableData()
-  }
+const approveDelayFunc = async(apply) => {
+  ElMessageBox.confirm('确定要通过吗?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async() => {
+    const res = await approveDelay(apply)
+    if (res.code === 0) {
+      ElMessage({
+        type: 'success',
+        message: '提交成功'
+      })
+      getTableData()
+    }
+  })
+}
+
+const rejectDelayFunc = async(apply) => {
+  ElMessageBox.confirm('确定要拒绝吗?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async() => {
+    const res = await rejectDelay(apply)
+    if (res.code === 0) {
+      ElMessage({
+        type: 'success',
+        message: '提交成功'
+      })
+      getTableData()
+    }
+  })
 }
 </script>
 

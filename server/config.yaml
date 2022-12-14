@@ -194,8 +194,8 @@ insurance:
   sign-program: ./jxblSignature.jar
   api-domain: https://lg.jxbolong.cn/lg
   api-domain-test: https://lg.jxbolong.cn/test/lg
-  jr-api-domain: ""
-  jr-api-domain-test: ""
+  jr-api-domain: https://jrfw.jxggzyjy.cn/api/lemon-openapi
+  jr-api-domain-test: http://112.95.248.184:9110/api/lemon-openapi
   app-key: EPF-ELOG
   app-secret: 12345678ABCDEFGH
   elog-rate: 0.0006

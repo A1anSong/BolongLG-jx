@@ -371,7 +371,7 @@
               type="success"
               icon="select"
               size="small"
-              @click="updateRefundFunc(scope.row.apply,2)"
+              @click="approveRefundFunc(scope.row)"
             >通过
             </el-button>
             <el-button
@@ -379,9 +379,23 @@
               type="danger"
               icon="closeBold"
               size="small"
-              @click="updateRefundFunc(scope.row.apply,3)"
+              @click="rejectRefundFunc(scope.row)"
             >拒绝
             </el-button>
+            <el-tag
+              v-if="scope.row.refund.auditStatus===2"
+              type="success"
+              effect="dark"
+              size="large"
+            >已审批通过
+            </el-tag>
+            <el-tag
+              v-if="scope.row.refund.auditStatus===3"
+              type="danger"
+              effect="dark"
+              size="large"
+            >已审批拒绝
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -426,7 +440,9 @@ import {
   deleteOrderByIds,
   updateOrder,
   findOrder,
-  getOrderList
+  getOrderList,
+  approveRefund,
+  rejectRefund
 } from '@/api/testOrder'
 
 import { updateApply } from '@/api/testApply'
@@ -638,23 +654,38 @@ const enterDialog = async() => {
   })
 }
 
-const updateRefundFunc = async(apply, status) => {
-  // apply.auditStatus = status
-  // apply.auditOpinion = ''
-  // apply.auditDate = date(new Date())
-  // apply.realElogRate = 0.0006
-  // apply.realElogAmount = Math.round(apply.tenderDeposit * apply.realElogRate * 100) / 100
-  // apply.realElogAmount = apply.realElogAmount > 60 ? apply.realElogAmount : 60
-  // apply.insuranceName = 'XXX担保公司'
-  // apply.insuranceCreditCode = 'TkeAijrww5tiBmsyhZ'
-  // const res = await updateApply(apply)
-  if (res.code === 0) {
-    ElMessage({
-      type: 'success',
-      message: '创建/更改成功'
-    })
-    getTableData()
-  }
+const approveRefundFunc = async(apply) => {
+  ElMessageBox.confirm('确定要通过吗?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async() => {
+    const res = await approveRefund(apply)
+    if (res.code === 0) {
+      ElMessage({
+        type: 'success',
+        message: '提交成功'
+      })
+      getTableData()
+    }
+  })
+}
+
+const rejectRefundFunc = async(apply) => {
+  ElMessageBox.confirm('确定要拒绝吗?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async() => {
+    const res = await rejectRefund(apply)
+    if (res.code === 0) {
+      ElMessage({
+        type: 'success',
+        message: '提交成功'
+      })
+      getTableData()
+    }
+  })
 }
 </script>
 

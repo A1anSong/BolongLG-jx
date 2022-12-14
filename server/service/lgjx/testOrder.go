@@ -1,16 +1,23 @@
 package lgjx
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrclientrequest"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrclientresponse"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/nonmigrate"
 	lgjxReq "github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/request"
 	lgjx2 "github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
 	"github.com/go-resty/resty/v2"
 	"github.com/xuri/excelize/v2"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math"
@@ -133,7 +140,7 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 		return
 	}
 
-	err = db.Limit(limit).Preload(clause.Associations).Order("order.created_at desc").Offset(offset).Find(&orders).Error
+	err = db.Limit(limit).Preload(clause.Associations).Preload("Project.Template").Order("order.created_at desc").Offset(offset).Find(&orders).Error
 	return orders, total, err
 }
 
@@ -160,14 +167,57 @@ func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err er
 		}
 
 		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/applyPush"
+			var applyPush = jrclientrequest.ApplyPush{
+				OrderNo:             *order.OrderNo,
+				ApplyNo:             *order.Apply.ApplyNo,
+				AuditStatus:         *order.Apply.AuditStatus,
+				AuditOpinion:        *order.Apply.AuditOpinion,
+				AuditDate:           *order.Apply.AuditDate,
+				RealElogAmount:      *order.Apply.RealElogAmount,
+				RealElogRate:        *order.Apply.RealElogRate,
+				TenderDeposit:       *order.Apply.TenderDeposit,
+				InsuranceName:       *order.Apply.InsuranceName,
+				InsuranceCreditCode: *order.Apply.InsuredCreditCode,
+			}
+			req, err := lgjx2.GenJRRequest(applyPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
 			client := resty.New()
 			resp, err := client.R().
-				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + "/jrapi/lg/applyPush")
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
 			if err != nil {
 				return err
 			}
 			if resp.StatusCode() == http.StatusOK {
-				// TODO: 解析交易中心返回的内容并判断
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
 			} else {
 				return errors.New("交易中心响应失败")
 			}
@@ -180,6 +230,82 @@ func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err er
 
 func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(3)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Apply.AuditStatus = &auditStatus
+		order.Apply.AuditOpinion = &auditOpinion
+		order.Apply.AuditDate = &auditDate
+		realAmount := math.Trunc(*order.Project.TenderDeposit*global.GVA_CONFIG.Insurance.ElogRate*1e2+0.5) * 1e-2
+		if realAmount < global.GVA_CONFIG.Insurance.ElogMinAmount {
+			order.Apply.RealElogAmount = &global.GVA_CONFIG.Insurance.ElogMinAmount
+		} else {
+			order.Apply.RealElogAmount = &realAmount
+		}
+		order.Apply.RealElogRate = &global.GVA_CONFIG.Insurance.ElogRate
+		order.Apply.InsuranceName = &global.GVA_CONFIG.Insurance.Name
+		order.Apply.InsuranceCreditCode = &global.GVA_CONFIG.Insurance.CreditCode
+		err := tx.Save(&order.Apply).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/applyPush"
+			var applyPush = jrclientrequest.ApplyPush{
+				OrderNo:             *order.OrderNo,
+				ApplyNo:             *order.Apply.ApplyNo,
+				AuditStatus:         *order.Apply.AuditStatus,
+				AuditOpinion:        *order.Apply.AuditOpinion,
+				AuditDate:           *order.Apply.AuditDate,
+				RealElogAmount:      *order.Apply.RealElogAmount,
+				RealElogRate:        *order.Apply.RealElogRate,
+				TenderDeposit:       *order.Apply.TenderDeposit,
+				InsuranceName:       *order.Apply.InsuranceName,
+				InsuranceCreditCode: *order.Apply.InsuredCreditCode,
+			}
+			req, err := lgjx2.GenJRRequest(applyPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -188,6 +314,105 @@ func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err err
 
 func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(2)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Delay.AuditStatus = &auditStatus
+		order.Delay.AuditOpinion = &auditOpinion
+		order.Delay.AuditDate = &auditDate
+
+		var templateFile lgjx.File
+		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
+			return err
+		}
+
+		var letter lgjx.Letter
+		var file lgjx.File
+		var encryptFile lgjx.File
+
+		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
+			return err
+		}
+		if err = tx.Create(&file).Error; err != nil {
+			return err
+		}
+		if err = tx.Create(&encryptFile).Error; err != nil {
+			return err
+		}
+		order.Delay.ElogFileID = &file.ID
+		order.Delay.ElogEncryptFileID = &encryptFile.ID
+
+		order.Delay.ElogUrl = letter.ElogUrl
+		order.Delay.ElogEncryptUrl = letter.ElogEncryptUrl
+		order.Delay.TenderDeposit = letter.TenderDeposit
+		order.Delay.InsureStartDate = letter.InsureStartDate
+		order.Delay.InsureEndDate = letter.InsureEndDate
+		order.Delay.InsureDay = letter.InsureDay
+		order.Delay.ValidateCode = letter.ValidateCode
+		err := tx.Save(&order.Delay).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/delayPush"
+			var delayPush = jrclientrequest.DelayPush{
+				OrderNo:         *order.OrderNo,
+				ApplyNo:         *order.Delay.ApplyNo,
+				ElogNo:          *order.Delay.ElogNo,
+				AuditStatus:     *order.Delay.AuditStatus,
+				AuditOpinion:    *order.Delay.AuditOpinion,
+				AuditDate:       *order.Delay.AuditDate,
+				ElogUrl:         *order.Delay.ElogUrl,
+				ElogEncryptUrl:  *order.Delay.ElogEncryptUrl,
+				TenderDeposit:   *order.Delay.TenderDeposit,
+				InsureStartDate: *order.Delay.InsureStartDate,
+				InsureEndDate:   *order.Delay.InsureEndDate,
+				InsureDay:       *order.Delay.InsureDay,
+				ValidateCode:    *order.Delay.ValidateCode,
+			}
+			req, err := lgjx2.GenJRRequest(delayPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -196,6 +421,81 @@ func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err er
 
 func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(3)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Delay.AuditStatus = &auditStatus
+		order.Delay.AuditOpinion = &auditOpinion
+		order.Delay.AuditDate = &auditDate
+
+		var templateFile lgjx.File
+		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
+			return err
+		}
+		err := tx.Save(&order.Delay).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/delayPush"
+			var delayPush = jrclientrequest.DelayPush{
+				OrderNo:         *order.OrderNo,
+				ApplyNo:         *order.Delay.ApplyNo,
+				ElogNo:          "",
+				AuditStatus:     *order.Delay.AuditStatus,
+				AuditOpinion:    *order.Delay.AuditOpinion,
+				AuditDate:       *order.Delay.AuditDate,
+				ElogUrl:         "",
+				ElogEncryptUrl:  "",
+				TenderDeposit:   0,
+				InsureStartDate: "",
+				InsureEndDate:   "",
+				InsureDay:       0,
+				ValidateCode:    "",
+			}
+			req, err := lgjx2.GenJRRequest(delayPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -204,6 +504,71 @@ func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err err
 
 func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(2)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Refund.AuditStatus = &auditStatus
+		order.Refund.AuditOpinion = &auditOpinion
+		order.Refund.AuditDate = &auditDate
+		order.Refund.PayAmount = order.Pay.PayAmount
+		err := tx.Save(&order.Refund).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/refundPush"
+			var refundPush = jrclientrequest.RefundPush{
+				OrderNo:      *order.OrderNo,
+				ApplyNo:      *order.Refund.ApplyNo,
+				ElogNo:       *order.Refund.ElogNo,
+				AuditStatus:  *order.Refund.AuditStatus,
+				AuditOpinion: *order.Refund.AuditOpinion,
+				AuditDate:    *order.Refund.AuditDate,
+				PayAmount:    *order.Refund.PayAmount,
+			}
+			req, err := lgjx2.GenJRRequest(refundPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -212,6 +577,70 @@ func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err e
 
 func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(3)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Refund.AuditStatus = &auditStatus
+		order.Refund.AuditOpinion = &auditOpinion
+		order.Refund.AuditDate = &auditDate
+		order.Refund.PayAmount = order.Pay.PayAmount
+		err := tx.Save(&order.Refund).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/refundPush"
+			var refundPush = jrclientrequest.RefundPush{
+				OrderNo:      *order.OrderNo,
+				ApplyNo:      *order.Refund.ApplyNo,
+				ElogNo:       *order.Refund.ElogNo,
+				AuditStatus:  *order.Refund.AuditStatus,
+				AuditOpinion: *order.Refund.AuditOpinion,
+				AuditDate:    *order.Refund.AuditDate,
+			}
+			req, err := lgjx2.GenJRRequest(refundPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -220,6 +649,73 @@ func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err er
 
 func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(2)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Claim.AuditStatus = &auditStatus
+		order.Claim.AuditOpinion = &auditOpinion
+		order.Claim.AuditDate = &auditDate
+		order.Claim.RealClaimAmount = order.Claim.ClaimAmount
+		order.Claim.RealClaimDate = &auditDate
+		err := tx.Save(&order.Claim).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/claimPush"
+			var claimPush = jrclientrequest.ClaimPush{
+				OrderNo:         *order.OrderNo,
+				ApplyNo:         *order.Claim.ApplyNo,
+				ElogNo:          *order.Claim.ElogNo,
+				AuditStatus:     *order.Claim.AuditStatus,
+				AuditOpinion:    *order.Claim.AuditOpinion,
+				AuditDate:       *order.Claim.AuditDate,
+				RealClaimAmount: *order.Claim.RealClaimAmount,
+				RealClaimDate:   *order.Claim.RealClaimDate,
+			}
+			req, err := lgjx2.GenJRRequest(claimPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -228,6 +724,69 @@ func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err er
 
 func (testOrderService *TestOrderService) RejectClaim(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		auditStatus := int64(3)
+		auditOpinion := ""
+		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		order.Claim.AuditStatus = &auditStatus
+		order.Claim.AuditOpinion = &auditOpinion
+		order.Claim.AuditDate = &auditDate
+		err := tx.Save(&order.Claim).Error
+		if err != nil {
+			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/claimPush"
+			var claimPush = jrclientrequest.ClaimPush{
+				OrderNo:      *order.OrderNo,
+				ApplyNo:      *order.Claim.ApplyNo,
+				ElogNo:       *order.Claim.ElogNo,
+				AuditStatus:  *order.Claim.AuditStatus,
+				AuditOpinion: *order.Claim.AuditOpinion,
+				AuditDate:    *order.Claim.AuditDate,
+			}
+			req, err := lgjx2.GenJRRequest(claimPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
 
 		return nil
 	})
@@ -334,7 +893,7 @@ func (testOrderService *TestOrderService) ExportExcel(info lgjxReq.OrderSearch) 
 	}
 
 	excel := excelize.NewFile()
-	excel.SetSheetRow("Sheet1", "A1", &[]string{"保函文件下载", "交易中心", "保函申请编码", "申请企业", "标段名称", "标段编号", "受益人名称", "担保金额（元）", "保函起始日期", "保函截止日期", "订单状态", "开标时间", "保费金额", "所属市", "所属县", "审核时间", "申请日期", "开函日期", "保函编码", "审核状态", "付款时间", "付款金额", "交易单号"})
+	_ = excel.SetSheetRow("Sheet1", "A1", &[]string{"保函文件下载", "交易中心", "保函申请编码", "申请企业", "标段名称", "标段编号", "受益人名称", "担保金额（元）", "保函起始日期", "保函截止日期", "订单状态", "开标时间", "保费金额", "所属市", "所属县", "审核时间", "申请日期", "开函日期", "保函编码", "审核状态", "付款时间", "付款金额", "交易单号"})
 	for i, order := range orders {
 		axis := fmt.Sprintf("A%d", i+2)
 		elogAmount, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", *order.Apply.TenderDeposit**order.Apply.ProductRate), 64)
@@ -377,7 +936,7 @@ func (testOrderService *TestOrderService) ExportExcel(info lgjxReq.OrderSearch) 
 			payAmount = 0.0
 			payTransNo = ""
 		}
-		excel.SetSheetRow("Sheet1", axis, &[]interface{}{
+		_ = excel.SetSheetRow("Sheet1", axis, &[]interface{}{
 			elogUrl,
 			"江西云平台",
 			*order.Apply.ApplyNo,

@@ -1,15 +1,22 @@
 package lgjx
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrclientrequest"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrclientresponse"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrrequest"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
 	lgjx2 "github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
+	"github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"net/http"
 	"time"
 )
 
@@ -128,7 +135,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		var order lgjx.Order
-		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload(clause.Associations).First(&order).Error; err != nil {
+		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload(clause.Associations).Preload("Project.Template").First(&order).Error; err != nil {
 			return err
 		}
 		pay := &lgjx.Pay{
@@ -152,7 +159,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		}
 
 		var templateFile lgjx.File
-		if err = tx.First(&templateFile).Error; err != nil {
+		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
 			return err
 		}
 
@@ -176,6 +183,65 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		order.LetterID = &letter.ID
 		if err = tx.Save(&order).Error; err != nil {
 			return err
+		}
+
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/lgResultPush"
+			var lgResultPush = jrclientrequest.LgResultPush{
+				OrderNo:             *order.OrderNo,
+				ElogNo:              *order.Letter.ElogNo,
+				InsuranceName:       *order.Letter.InsuranceName,
+				InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
+				ElogOutDate:         *order.Letter.ElogOutDate,
+				ElogUrl:             *order.Letter.ElogUrl,
+				ElogEncryptUrl:      *order.Letter.ElogEncryptUrl,
+				TenderDeposit:       *order.Letter.TenderDeposit,
+				InsureStartDate:     *order.Letter.InsureStartDate,
+				InsureEndDate:       *order.Letter.InsureEndDate,
+				InsureDay:           *order.Letter.InsureDay,
+				ValidateCode:        *order.Letter.ValidateCode,
+			}
+			req, err := lgjx2.GenJRRequest(lgResultPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
 		}
 
 		return nil

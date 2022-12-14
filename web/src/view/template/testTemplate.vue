@@ -40,7 +40,7 @@
         <!--          <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>-->
         <!--        </el-table-column>-->
         <el-table-column align="left" label="模板名称" prop="templateName" min-width="120px" />
-        <el-table-column align="left" label="按钮组" min-width="120px" fixed="right">
+        <el-table-column align="left" label="按钮组" width="160px" fixed="right">
           <template #default="scope">
             <!--            <el-button-->
             <!--              type="primary"-->

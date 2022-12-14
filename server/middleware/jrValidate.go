@@ -15,7 +15,7 @@ func JRValidate() gin.HandlerFunc {
 		var request jrrequest.JRRequest
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
 				Code: int(jrapi.MissingParam),
 				Msg:  jrapi.MissingParam.String(),
 				Data: "",
@@ -25,7 +25,7 @@ func JRValidate() gin.HandlerFunc {
 		}
 		// sm3验签
 		if request.Signature != lgjx.SM3Sign("appKey="+request.AppKey+"&data="+request.Data+"&requestId="+request.RequestId+"&timestamp="+request.TimeStamp) {
-			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
 				Code: int(jrapi.SignCheckFailed),
 				Msg:  jrapi.SignCheckFailed.String(),
 				Data: "",
@@ -36,7 +36,7 @@ func JRValidate() gin.HandlerFunc {
 		// 提取data
 		byteEncryptData, err := base64.StdEncoding.DecodeString(request.Data)
 		if err != nil {
-			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
 				Code: int(jrapi.MissingParam),
 				Msg:  jrapi.MissingParam.String(),
 				Data: "",
@@ -47,7 +47,7 @@ func JRValidate() gin.HandlerFunc {
 		// sm4解密
 		jsonData, err := lgjx.Sm4Decrypt(byteEncryptData)
 		if err != nil {
-			c.JSON(http.StatusOK, jrresponse.JRResponseFailed{
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
 				Code: int(jrapi.DecryptFailed),
 				Msg:  jrapi.DecryptFailed.String(),
 				Data: "",

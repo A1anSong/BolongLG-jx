@@ -18,6 +18,8 @@ func (s *TestInvoiceApplyRouter) InitInvoiceApplyRouter(Router *gin.RouterGroup)
 		testInvoiceApplyRouter.DELETE("deleteInvoiceApply", testInvoiceApplyApi.DeleteInvoiceApply)           // 删除InvoiceApply
 		testInvoiceApplyRouter.DELETE("deleteInvoiceApplyByIds", testInvoiceApplyApi.DeleteInvoiceApplyByIds) // 批量删除InvoiceApply
 		testInvoiceApplyRouter.PUT("updateInvoiceApply", testInvoiceApplyApi.UpdateInvoiceApply)              // 更新InvoiceApply
+		testInvoiceApplyRouter.PUT("approveInvoiceApply", testInvoiceApplyApi.ApproveInvoiceApply)            // 审批同意发票申请
+		testInvoiceApplyRouter.PUT("rejectInvoiceApply", testInvoiceApplyApi.RejectInvoiceApply)              // 审批拒绝发票申请
 	}
 	{
 		testInvoiceApplyRouterWithoutRecord.GET("findInvoiceApply", testInvoiceApplyApi.FindInvoiceApply)       // 根据ID获取InvoiceApply

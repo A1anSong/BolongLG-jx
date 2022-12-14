@@ -110,3 +110,33 @@ func (testInvoiceApplyApi *TestInvoiceApplyApi) GetInvoiceApplyList(c *gin.Conte
 		}, "获取成功", c)
 	}
 }
+
+func (testInvoiceApplyApi *TestInvoiceApplyApi) ApproveInvoiceApply(c *gin.Context) {
+	var invoiceApply lgjx.InvoiceApply
+	err := c.ShouldBindJSON(&invoiceApply)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testInvoiceApplyService.ApproveInvoiceApply(invoiceApply); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
+func (testInvoiceApplyApi *TestInvoiceApplyApi) RejectInvoiceApply(c *gin.Context) {
+	var invoiceApply lgjx.InvoiceApply
+	err := c.ShouldBindJSON(&invoiceApply)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testInvoiceApplyService.RejectInvoiceApply(invoiceApply); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("更新成功", c)
+	}
+}

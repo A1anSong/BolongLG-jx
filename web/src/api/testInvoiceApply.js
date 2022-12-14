@@ -47,3 +47,19 @@ export const getInvoiceApplyList = (params) => {
     params
   })
 }
+
+export const approveInvoiceApply = (data) => {
+  return service({
+    url: '/testInvoiceApply/approveInvoiceApply',
+    method: 'put',
+    data
+  })
+}
+
+export const rejectInvoiceApply = (data) => {
+  return service({
+    url: '/testInvoiceApply/rejectInvoiceApply',
+    method: 'put',
+    data
+  })
+}

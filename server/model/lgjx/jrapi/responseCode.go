@@ -3,6 +3,7 @@ package jrapi
 type ResponseCode int
 
 const (
+	FAILED              ResponseCode = -1
 	SUCCESS             ResponseCode = 0
 	MissingParam        ResponseCode = 1001
 	NotAuthorized       ResponseCode = 1002
@@ -13,6 +14,8 @@ const (
 
 func (r ResponseCode) String() string {
 	switch r {
+	case FAILED:
+		return "系统异常"
 	case SUCCESS:
 		return "success"
 	case MissingParam:
