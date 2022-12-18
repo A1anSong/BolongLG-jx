@@ -21,7 +21,7 @@ func GenJRRequest(formatData interface{}) (req jrrequest.JRRequest, err error) {
 	data := Sm4Encrypt(resJsonData)
 	req = jrrequest.JRRequest{
 		AppKey:    global.GVA_CONFIG.Insurance.AppKey,
-		TimeStamp: timestamp,
+		Timestamp: timestamp,
 		RequestId: requestId,
 		Signature: SM3Sign("appKey=" + global.GVA_CONFIG.Insurance.AppKey + "&data=" + data + "&requestId=" + requestId + "&timestamp=" + timestamp),
 		Version:   "1.0.0",

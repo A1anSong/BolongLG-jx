@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
@@ -17,6 +18,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -60,14 +62,17 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 			return err
 		}
 		var auditStatus int64 = 1
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
+		attachInfo, _ := json.Marshal(reApply.AttachInfo)
+		attachInfoString := string(attachInfo)
+		productType, _ := strconv.ParseInt(*reApply.ProductType, 10, 64)
 		apply := &lgjx.Apply{
 			OrderID:           &order.ID,
 			OrderNo:           reApply.OrderNo,
 			ApplyNo:           reApply.ApplyNo,
 			ProductNo:         reApply.ProductNo,
-			ProductType:       reApply.ProductType,
+			ProductType:       &productType,
 			ProductRate:       reApply.ProductRate,
 			ElogAmount:        reApply.ElogAmount,
 			ProjectGuid:       reApply.ProjectGuid,
@@ -91,7 +96,7 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 			ApplicantIdCard:   reApply.ApplicantIdCard,
 			ApplicantTel:      reApply.ApplicantTel,
 			ApplicantAuthCode: reApply.ApplicantAuthCode,
-			AttachInfo:        reApply.AttachInfo,
+			AttachInfo:        &attachInfoString,
 			AuditStatus:       &auditStatus,
 			AuditOpinion:      &auditOpinion,
 			AuditDate:         &auditDate,
@@ -158,90 +163,95 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 			ReceiveResult: &receiveResult,
 		}
 
-		var templateFile lgjx.File
-		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
-			return err
-		}
-
-		var letter lgjx.Letter
-		var file lgjx.File
-		var encryptFile lgjx.File
-		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
-			return err
-		}
-		if err = tx.Create(&file).Error; err != nil {
-			return err
-		}
-		if err = tx.Create(&encryptFile).Error; err != nil {
-			return err
-		}
-		letter.ElogFileID = &file.ID
-		letter.ElogEncryptFileID = &encryptFile.ID
-		if err = tx.Create(&letter).Error; err != nil {
-			return err
-		}
-		order.LetterID = &letter.ID
-		if err = tx.Save(&order).Error; err != nil {
-			return err
-		}
-
-		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
-			apiPath := "/jrapi/lg/lgResultPush"
-			var lgResultPush = jrclientrequest.LgResultPush{
-				OrderNo:             *order.OrderNo,
-				ElogNo:              *order.Letter.ElogNo,
-				InsuranceName:       *order.Letter.InsuranceName,
-				InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
-				ElogOutDate:         *order.Letter.ElogOutDate,
-				ElogUrl:             *order.Letter.ElogUrl,
-				ElogEncryptUrl:      *order.Letter.ElogEncryptUrl,
-				TenderDeposit:       *order.Letter.TenderDeposit,
-				InsureStartDate:     *order.Letter.InsureStartDate,
-				InsureEndDate:       *order.Letter.InsureEndDate,
-				InsureDay:           *order.Letter.InsureDay,
-				ValidateCode:        *order.Letter.ValidateCode,
-			}
-			req, err := lgjx2.GenJRRequest(lgResultPush)
-			if err != nil {
+		err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(subTx *gorm.DB) error {
+			var templateFile lgjx.File
+			if err = subTx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
 				return err
 			}
-			var res jrresponse.JRResponse
-			client := resty.New()
-			resp, err := client.R().
-				SetBody(&req).
-				SetResult(&res).
-				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
-			if err != nil {
+			var letter lgjx.Letter
+			var file lgjx.File
+			var encryptFile lgjx.File
+			if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
 				return err
 			}
-			if resp.StatusCode() == http.StatusOK {
-				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
-					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
-					return err
-				} else {
-					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
-					if err != nil {
-						return err
-					}
-					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
-					if err != nil {
-						return err
-					}
-					var resData jrclientresponse.Response
-					err = json.Unmarshal([]byte(jsonData), &resData)
-					if err != nil {
-						return err
-					}
-					if resData.ReceiveResult != "success" {
-						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
-						return errors.New("接收结果不为success")
-					}
+			if err = subTx.Create(&file).Error; err != nil {
+				return err
+			}
+			if err = subTx.Create(&encryptFile).Error; err != nil {
+				return err
+			}
+			letter.ElogFileID = &file.ID
+			letter.ElogEncryptFileID = &encryptFile.ID
+			if err = subTx.Create(&letter).Error; err != nil {
+				return err
+			}
+			order.LetterID = &letter.ID
+			if err = subTx.Save(&order).Error; err != nil {
+				return err
+			}
+			if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+				apiPath := "/jrapi/lg/lgResultPush"
+				var lgResultPush = jrclientrequest.LgResultPush{
+					OrderNo:             *order.OrderNo,
+					ElogNo:              *order.Letter.ElogNo,
+					InsuranceName:       *order.Letter.InsuranceName,
+					InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
+					ElogOutDate:         *order.Letter.ElogOutDate,
+					ElogUrl:             *order.Letter.ElogUrl,
+					ElogEncryptUrl:      *order.Letter.ElogEncryptUrl,
+					TenderDeposit:       *order.Letter.TenderDeposit,
+					InsureStartDate:     *order.Letter.InsureStartDate,
+					InsureEndDate:       *order.Letter.InsureEndDate,
+					InsureDay:           *order.Letter.InsureDay,
+					ValidateCode:        *order.Letter.ValidateCode,
 				}
-			} else {
-				return errors.New("交易中心响应失败")
+				req, err := lgjx2.GenJRRequest(lgResultPush)
+				if err != nil {
+					return err
+				}
+				var res jrresponse.JRResponse
+				client := resty.New()
+				resp, err := client.R().
+					SetBody(&req).
+					SetResult(&res).
+					Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+				if err != nil {
+					return err
+				}
+				if resp.StatusCode() == http.StatusOK {
+					if res.Code != 0 {
+						code := (jrapi.ResponseCode)(res.Code)
+						err := errors.New(code.String())
+						global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+						return err
+					} else {
+						byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+						if err != nil {
+							return err
+						}
+						jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+						if err != nil {
+							return err
+						}
+						var resData jrclientresponse.Response
+						err = json.Unmarshal([]byte(jsonData), &resData)
+						if err != nil {
+							return err
+						}
+						if resData.ReceiveResult != "success" {
+							global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+							return errors.New("接收结果不为success")
+						}
+					}
+				} else {
+					return errors.New("交易中心响应失败")
+				}
 			}
+
+			return nil
+		})
+		if err != nil {
+			fmt.Println(err.Error())
 		}
 
 		return nil
@@ -340,6 +350,8 @@ func (testJRAPIService *TestJRAPIService) ApplyDelay(reApplyDelay jrrequest.JRAP
 		if err = tx.Where("order_no = ?", reApplyDelay.OrderNo).First(&order).Error; err != nil {
 			return err
 		}
+		attachInfo, _ := json.Marshal(reApplyDelay.AttachInfo)
+		attachInfoString := string(attachInfo)
 		delay := &lgjx.Delay{
 			OrderID:          &order.ID,
 			OrderNo:          reApplyDelay.OrderNo,
@@ -358,7 +370,7 @@ func (testJRAPIService *TestJRAPIService) ApplyDelay(reApplyDelay jrrequest.JRAP
 			ApplicantIdCard:  reApplyDelay.ApplicantIdCard,
 			ApplicantTel:     reApplyDelay.ApplicantTel,
 			Reason:           reApplyDelay.Reason,
-			AttachInfo:       reApplyDelay.AttachInfo,
+			AttachInfo:       &attachInfoString,
 		}
 		if err = tx.Create(&delay).Error; err != nil {
 			return err
@@ -394,6 +406,8 @@ func (testJRAPIService *TestJRAPIService) ApplyRefund(reApplyRefund jrrequest.JR
 		if err = tx.Where("order_no = ?", reApplyRefund.OrderNo).First(&order).Error; err != nil {
 			return err
 		}
+		attachInfo, _ := json.Marshal(reApplyRefund.AttachInfo)
+		attachInfoString := string(attachInfo)
 		refund := &lgjx.Refund{
 			OrderID:          &order.ID,
 			OrderNo:          reApplyRefund.OrderNo,
@@ -405,7 +419,7 @@ func (testJRAPIService *TestJRAPIService) ApplyRefund(reApplyRefund jrrequest.JR
 			ApplicantIdCard:  reApplyRefund.ApplicantIdCard,
 			ApplicantTel:     reApplyRefund.ApplicantTel,
 			Reason:           reApplyRefund.Reason,
-			AttachInfo:       reApplyRefund.AttachInfo,
+			AttachInfo:       &attachInfoString,
 		}
 		if err = tx.Create(&refund).Error; err != nil {
 			return err
@@ -444,6 +458,8 @@ func (testJRAPIService *TestJRAPIService) ApplyClaim(reApplyClaim jrrequest.JRAP
 		if err = tx.Where("order_no = ?", reApplyClaim.OrderNo).First(&order).Error; err != nil {
 			return err
 		}
+		attachInfo, _ := json.Marshal(reApplyClaim.AttachInfo)
+		attachInfoString := string(attachInfo)
 		claim := &lgjx.Claim{
 			OrderID:           &order.ID,
 			OrderNo:           reApplyClaim.OrderNo,
@@ -458,7 +474,7 @@ func (testJRAPIService *TestJRAPIService) ApplyClaim(reApplyClaim jrrequest.JRAP
 			ApplicantTel:      reApplyClaim.ApplicantTel,
 			ClaimAmount:       reApplyClaim.ClaimAmount,
 			Reason:            reApplyClaim.Reason,
-			AttachInfo:        reApplyClaim.AttachInfo,
+			AttachInfo:        &attachInfoString,
 		}
 		if err = tx.Create(&claim).Error; err != nil {
 			return err
@@ -521,6 +537,8 @@ func (testJRAPIService *TestJRAPIService) ApplyInvoice(reApplyInvoice jrrequest.
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		orderList, _ := json.Marshal(reApplyInvoice.OrderList)
+		orderListString := string(orderList)
 		invoiceApply := &lgjx.InvoiceApply{
 			ApplyNo:            reApplyInvoice.ApplyNo,
 			InvoiceTotalAmount: reApplyInvoice.InvoiceTotalAmount,
@@ -533,7 +551,7 @@ func (testJRAPIService *TestJRAPIService) ApplyInvoice(reApplyInvoice jrrequest.
 			CompanyAddress:     reApplyInvoice.CompanyAddress,
 			CompanyTel:         reApplyInvoice.CompanyTel,
 			Remarks:            reApplyInvoice.Remarks,
-			OrderList:          reApplyInvoice.OrderList,
+			OrderList:          &orderListString,
 		}
 		if err = tx.Create(&invoiceApply).Error; err != nil {
 			return err

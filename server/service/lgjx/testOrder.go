@@ -135,6 +135,9 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 	if info.AuditClaim != nil {
 		db = db.Where("order.claim_id is not null")
 	}
+	if info.IsPayed != nil {
+		db = db.Where("order.pay_id is not null")
+	}
 	err = db.Count(&total).Error
 	if err != nil {
 		return
@@ -147,7 +150,7 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Apply.AuditStatus = &auditStatus
 		order.Apply.AuditOpinion = &auditOpinion
@@ -231,7 +234,7 @@ func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Apply.AuditStatus = &auditStatus
 		order.Apply.AuditOpinion = &auditOpinion
@@ -315,7 +318,7 @@ func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err err
 func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Delay.AuditStatus = &auditStatus
 		order.Delay.AuditOpinion = &auditOpinion
@@ -422,7 +425,7 @@ func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Delay.AuditStatus = &auditStatus
 		order.Delay.AuditOpinion = &auditOpinion
@@ -505,7 +508,7 @@ func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err err
 func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Refund.AuditStatus = &auditStatus
 		order.Refund.AuditOpinion = &auditOpinion
@@ -578,7 +581,7 @@ func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err e
 func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Refund.AuditStatus = &auditStatus
 		order.Refund.AuditOpinion = &auditOpinion
@@ -650,7 +653,7 @@ func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Claim.AuditStatus = &auditStatus
 		order.Claim.AuditOpinion = &auditOpinion
@@ -725,7 +728,7 @@ func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) RejectClaim(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Claim.AuditStatus = &auditStatus
 		order.Claim.AuditOpinion = &auditOpinion
@@ -746,6 +749,97 @@ func (testOrderService *TestOrderService) RejectClaim(order lgjx.Order) (err err
 				AuditDate:    *order.Claim.AuditDate,
 			}
 			req, err := lgjx2.GenJRRequest(claimPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					code := (jrapi.ResponseCode)(res.Code)
+					err := errors.New(code.String())
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
+		}
+
+		return nil
+	})
+	return err
+}
+
+func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err error) {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		var templateFile lgjx.File
+		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
+			return err
+		}
+		var letter lgjx.Letter
+		var file lgjx.File
+		var encryptFile lgjx.File
+		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
+			return err
+		}
+		if err = tx.Create(&file).Error; err != nil {
+			return err
+		}
+		if err = tx.Create(&encryptFile).Error; err != nil {
+			return err
+		}
+		letter.ElogFileID = &file.ID
+		letter.ElogEncryptFileID = &encryptFile.ID
+		if err = tx.Create(&letter).Error; err != nil {
+			return err
+		}
+		order.LetterID = &letter.ID
+		if err = tx.Save(&order).Error; err != nil {
+			return err
+		}
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/lgResultPush"
+			var lgResultPush = jrclientrequest.LgResultPush{
+				OrderNo:             *order.OrderNo,
+				ElogNo:              *order.Letter.ElogNo,
+				InsuranceName:       *order.Letter.InsuranceName,
+				InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
+				ElogOutDate:         *order.Letter.ElogOutDate,
+				ElogUrl:             *order.Letter.ElogUrl,
+				ElogEncryptUrl:      *order.Letter.ElogEncryptUrl,
+				TenderDeposit:       *order.Letter.TenderDeposit,
+				InsureStartDate:     *order.Letter.InsureStartDate,
+				InsureEndDate:       *order.Letter.InsureEndDate,
+				InsureDay:           *order.Letter.InsureDay,
+				ValidateCode:        *order.Letter.ValidateCode,
+			}
+			req, err := lgjx2.GenJRRequest(lgResultPush)
 			if err != nil {
 				return err
 			}

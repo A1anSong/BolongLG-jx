@@ -234,6 +234,21 @@ func (testTestOrderApi *TestOrderApi) RejectClaim(c *gin.Context) {
 	}
 }
 
+func (testTestOrderApi *TestOrderApi) OpenLetter(c *gin.Context) {
+	var order lgjx.Order
+	err := c.ShouldBindJSON(&order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := testOrderService.OpenLetter(order); err != nil {
+		global.GVA_LOG.Error("提交失败!", zap.Error(err))
+		response.FailWithMessage("提交失败", c)
+	} else {
+		response.OkWithMessage("提交成功", c)
+	}
+}
+
 func (testTestOrderApi *TestOrderApi) GetOrderStatisticData(c *gin.Context) {
 	if orderStatisticData, err := testOrderService.GetOrderStatisticData(); err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))

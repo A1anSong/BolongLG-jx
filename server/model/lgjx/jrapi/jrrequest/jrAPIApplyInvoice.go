@@ -12,5 +12,5 @@ type JRAPIApplyInvoice struct {
 	CompanyAddress     *string  `json:"companyAddress"`
 	CompanyTel         *string  `json:"companyTel"`
 	Remarks            *string  `json:"remarks"`
-	OrderList          *string  `json:"orderList"`
+	OrderList          []Order  `json:"orderList"`
 }

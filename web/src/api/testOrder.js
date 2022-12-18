@@ -113,6 +113,14 @@ export const rejectClaim = (data) => {
   })
 }
 
+export const openLetter = (data) => {
+  return service({
+    url: '/testOrder/openLetter',
+    method: 'put',
+    data
+  })
+}
+
 export const getOrderStatisticData = (params) => {
   return service({
     url: '/testOrder/getOrderStatisticData',

@@ -292,6 +292,7 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column align="center" label="订单编号" prop="orderNo" min-width="160px" />
         <el-table-column align="center" label="申请编号" prop="apply.applyNo" min-width="160px" />
         <el-table-column align="center" label="来源" min-width="80px">
           <template #default="scope">{{ productType(scope.row.apply.productType) }}</template>

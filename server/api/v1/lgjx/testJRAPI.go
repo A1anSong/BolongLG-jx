@@ -2,12 +2,14 @@ package lgjx
 
 import (
 	"encoding/json"
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrrequest"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/lgjx"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -19,12 +21,13 @@ var testJRAPIService = service.ServiceGroupApp.LgjxTestServiceGroup.TestJRAPISer
 func (testJRAPI *TestJRAPI) Apply(c *gin.Context) {
 	var reApply jrrequest.JRAPIApply
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reApply)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reApply)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -52,12 +55,13 @@ func (testJRAPI *TestJRAPI) Apply(c *gin.Context) {
 func (testJRAPI *TestJRAPI) PayPush(c *gin.Context) {
 	var rePayPush jrrequest.JRAPIPayPush
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &rePayPush)
+	err := json.Unmarshal([]byte(jsonData.(string)), &rePayPush)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -85,12 +89,13 @@ func (testJRAPI *TestJRAPI) PayPush(c *gin.Context) {
 func (testJRAPI *TestJRAPI) QueryInfo(c *gin.Context) {
 	var reQueryInfo jrrequest.JRAPIQueryInfo
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reQueryInfo)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reQueryInfo)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -118,12 +123,13 @@ func (testJRAPI *TestJRAPI) QueryInfo(c *gin.Context) {
 func (testJRAPI *TestJRAPI) RevokePush(c *gin.Context) {
 	var reRevokePush jrrequest.JRAPIRevokePush
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reRevokePush)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reRevokePush)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -151,12 +157,13 @@ func (testJRAPI *TestJRAPI) RevokePush(c *gin.Context) {
 func (testJRAPI *TestJRAPI) ApplyDelay(c *gin.Context) {
 	var reApplyDelay jrrequest.JRAPIApplyDelay
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reApplyDelay)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reApplyDelay)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -184,12 +191,13 @@ func (testJRAPI *TestJRAPI) ApplyDelay(c *gin.Context) {
 func (testJRAPI *TestJRAPI) ApplyRefund(c *gin.Context) {
 	var reApplyRefund jrrequest.JRAPIApplyRefund
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reApplyRefund)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reApplyRefund)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -217,12 +225,13 @@ func (testJRAPI *TestJRAPI) ApplyRefund(c *gin.Context) {
 func (testJRAPI *TestJRAPI) ApplyClaim(c *gin.Context) {
 	var reApplyClaim jrrequest.JRAPIApplyClaim
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reApplyClaim)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reApplyClaim)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -250,12 +259,13 @@ func (testJRAPI *TestJRAPI) ApplyClaim(c *gin.Context) {
 func (testJRAPI *TestJRAPI) LogoutPush(c *gin.Context) {
 	var reLogoutPush jrrequest.JRAPILogoutPush
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reLogoutPush)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reLogoutPush)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}
@@ -283,12 +293,13 @@ func (testJRAPI *TestJRAPI) LogoutPush(c *gin.Context) {
 func (testJRAPI *TestJRAPI) ApplyInvoice(c *gin.Context) {
 	var reApplyInvoice jrrequest.JRAPIApplyInvoice
 	jsonData, _ := c.Get("jsonData")
-	err := json.Unmarshal(jsonData.([]byte), &reApplyInvoice)
+	err := json.Unmarshal([]byte(jsonData.(string)), &reApplyInvoice)
 	if err != nil {
+		global.GVA_LOG.Error("接收请求失败!", zap.Error(err))
 		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
+			Code: int(jrapi.FAILED),
+			Msg:  jrapi.FAILED.String(),
+			Data: err.Error(),
 		})
 		return
 	}

@@ -79,7 +79,7 @@ func (testInvoiceApplyService *TestInvoiceApplyService) ApproveInvoiceApply(invo
 func (testInvoiceApplyService *TestInvoiceApplyService) RejectInvoiceApply(invoiceApply lgjx.InvoiceApply) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := ""
+		auditOpinion := "todo:意见审批"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		invoiceApply.AuditStatus = &auditStatus
 		invoiceApply.AuditOpinion = &auditOpinion

@@ -22,5 +22,6 @@ type OrderSearch struct {
 	AuditDelay      *bool       `json:"auditDelay" form:"auditDelay"`
 	AuditRefund     *bool       `json:"auditRefund" form:"auditRefund"`
 	AuditClaim      *bool       `json:"auditClaim" form:"auditClaim"`
+	IsPayed         *bool       `json:"isPayed" form:"isPayed"`
 	request.PageInfo
 }
