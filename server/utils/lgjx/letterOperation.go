@@ -46,7 +46,12 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File, isDevelop bool) (lette
 	insureEndDateYear, insureEndDateMonth, insureEndDateDay := insureEndDate.Date()
 	insureDay := *order.Project.ProjectDay
 	insuredAddress := *order.Project.TendereeAddress
-	projectCategory := *order.Project.ProjectCategory
+	var projectCategory string
+	if order.Project.ProjectCategory != nil {
+		projectCategory = *order.Project.ProjectCategory
+	} else {
+		projectCategory = ""
+	}
 	projectOpenDate, _ := time.ParseInLocation("2006-01-02 15:04:05", *order.Project.ProjectOpenTime, time.Local)
 	projectOpenDateYear, projectOpenDateMonth, projectOpenDateDay := projectOpenDate.Date()
 	projectPublishDate, _ := time.ParseInLocation("2006-01-02 15:04:05", *order.Project.ProjectPublishTime, time.Local)

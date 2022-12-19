@@ -59,7 +59,7 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 	offset := info.PageSize * (info.Page - 1)
 	// 创建db
 	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Order{})
-	db.Joins("Apply").Joins("Pay").Joins("Letter").Joins("Revoke").Joins("Delay").Joins("Refund").Joins("Claim").Joins("Logout").Joins("Invoice").Joins("Project")
+	db.Joins("Apply").Joins("Project").Joins("Letter")
 	var orders []lgjx.Order
 	// 如果有条件搜索 下方会自动创建搜索语句
 	if info.ApplyNo != nil {
