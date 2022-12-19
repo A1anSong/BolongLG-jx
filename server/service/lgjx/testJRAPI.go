@@ -193,17 +193,17 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 				apiPath := "/jrapi/lg/lgResultPush"
 				var lgResultPush = jrclientrequest.LgResultPush{
 					OrderNo:             *order.OrderNo,
-					ElogNo:              *order.Letter.ElogNo,
-					InsuranceName:       *order.Letter.InsuranceName,
-					InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
-					ElogOutDate:         *order.Letter.ElogOutDate,
-					ElogUrl:             *order.Letter.ElogUrl,
-					ElogEncryptUrl:      *order.Letter.ElogEncryptUrl,
-					TenderDeposit:       *order.Letter.TenderDeposit,
-					InsureStartDate:     *order.Letter.InsureStartDate,
-					InsureEndDate:       *order.Letter.InsureEndDate,
-					InsureDay:           *order.Letter.InsureDay,
-					ValidateCode:        *order.Letter.ValidateCode,
+					ElogNo:              *letter.ElogNo,
+					InsuranceName:       *letter.InsuranceName,
+					InsuranceCreditCode: *letter.InsuranceCreditCode,
+					ElogOutDate:         *letter.ElogOutDate,
+					ElogUrl:             *letter.ElogUrl,
+					ElogEncryptUrl:      *letter.ElogEncryptUrl,
+					TenderDeposit:       *letter.TenderDeposit,
+					InsureStartDate:     *letter.InsureStartDate,
+					InsureEndDate:       *letter.InsureEndDate,
+					InsureDay:           *letter.InsureDay,
+					ValidateCode:        *letter.ValidateCode,
 				}
 				req, err := lgjx2.GenJRRequest(lgResultPush)
 				if err != nil {
