@@ -8,7 +8,6 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrclientrequest"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrclientresponse"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi/jrresponse"
@@ -78,6 +77,9 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 		db = db.Where("Letter.elog_no = ?", info.ElogNo)
 	}
 	if info.OrderStatus != nil {
+		if *info.OrderStatus == "已撤" {
+			db = db.Where("order.revoke_id is not null")
+		}
 		if *info.OrderStatus == "销函" {
 			db = db.Where("order.logout_id is not null")
 		}
@@ -198,8 +200,7 @@ func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err er
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -282,8 +283,7 @@ func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err err
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -366,13 +366,13 @@ func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err er
 				AuditStatus:     *order.Delay.AuditStatus,
 				AuditOpinion:    *order.Delay.AuditOpinion,
 				AuditDate:       *order.Delay.AuditDate,
-				ElogUrl:         *order.Delay.ElogUrl,
-				ElogEncryptUrl:  *order.Delay.ElogEncryptUrl,
-				TenderDeposit:   *order.Delay.TenderDeposit,
-				InsureStartDate: *order.Delay.InsureStartDate,
-				InsureEndDate:   *order.Delay.InsureEndDate,
-				InsureDay:       *order.Delay.InsureDay,
-				ValidateCode:    *order.Delay.ValidateCode,
+				ElogUrl:         global.GVA_CONFIG.Insurance.APIDoaminTest + "/delayFileDownload?elog=" + *letter.ElogUrl,
+				ElogEncryptUrl:  global.GVA_CONFIG.Insurance.APIDoaminTest + "/delayFileDownload?elog=" + *letter.ElogEncryptUrl + "&type=encrypt",
+				TenderDeposit:   *letter.TenderDeposit,
+				InsureStartDate: *letter.InsureStartDate,
+				InsureEndDate:   *letter.InsureEndDate,
+				InsureDay:       *letter.InsureDay,
+				ValidateCode:    *letter.ValidateCode,
 			}
 			req, err := lgjx2.GenJRRequest(delayPush)
 			if err != nil {
@@ -389,8 +389,7 @@ func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err er
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -445,17 +444,17 @@ func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err err
 			var delayPush = jrclientrequest.DelayPush{
 				OrderNo:         *order.OrderNo,
 				ApplyNo:         *order.Delay.ApplyNo,
-				ElogNo:          "",
+				ElogNo:          *order.Letter.ElogNo,
 				AuditStatus:     *order.Delay.AuditStatus,
 				AuditOpinion:    *order.Delay.AuditOpinion,
 				AuditDate:       *order.Delay.AuditDate,
-				ElogUrl:         "",
-				ElogEncryptUrl:  "",
-				TenderDeposit:   0,
-				InsureStartDate: "",
-				InsureEndDate:   "",
-				InsureDay:       0,
-				ValidateCode:    "",
+				ElogUrl:         *order.Letter.ElogUrl,
+				ElogEncryptUrl:  *order.Letter.ElogEncryptUrl,
+				TenderDeposit:   *order.Letter.TenderDeposit,
+				InsureStartDate: *order.Letter.InsureStartDate,
+				InsureEndDate:   *order.Letter.InsureEndDate,
+				InsureDay:       *order.Letter.InsureDay,
+				ValidateCode:    *order.Letter.ValidateCode,
 			}
 			req, err := lgjx2.GenJRRequest(delayPush)
 			if err != nil {
@@ -472,8 +471,7 @@ func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err err
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -545,8 +543,7 @@ func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err e
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -617,8 +614,7 @@ func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err er
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -692,8 +688,7 @@ func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err er
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -763,8 +758,7 @@ func (testOrderService *TestOrderService) RejectClaim(order lgjx.Order) (err err
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -831,8 +825,8 @@ func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err erro
 				InsuranceName:       *letter.InsuranceName,
 				InsuranceCreditCode: *letter.InsuranceCreditCode,
 				ElogOutDate:         *letter.ElogOutDate,
-				ElogUrl:             *letter.ElogUrl,
-				ElogEncryptUrl:      *letter.ElogEncryptUrl,
+				ElogUrl:             global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *letter.ElogUrl,
+				ElogEncryptUrl:      global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *letter.ElogEncryptUrl + "&type=encrypt",
 				TenderDeposit:       *letter.TenderDeposit,
 				InsureStartDate:     *letter.InsureStartDate,
 				InsureEndDate:       *letter.InsureEndDate,
@@ -854,8 +848,7 @@ func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err erro
 			}
 			if resp.StatusCode() == http.StatusOK {
 				if res.Code != 0 {
-					code := (jrapi.ResponseCode)(res.Code)
-					err := errors.New(code.String())
+					err := errors.New(res.Msg)
 					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 					return err
 				} else {
@@ -884,6 +877,67 @@ func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err erro
 
 		return nil
 	})
+	return err
+}
+
+func (testOrderService *TestOrderService) RePush(order lgjx.Order) (err error) {
+	if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+		apiPath := "/jrapi/lg/lgResultPush"
+		var lgResultPush = jrclientrequest.LgResultPush{
+			OrderNo:             *order.OrderNo,
+			ElogNo:              *order.Letter.ElogNo,
+			InsuranceName:       *order.Letter.InsuranceName,
+			InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
+			ElogOutDate:         *order.Letter.ElogOutDate,
+			ElogUrl:             global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *order.Letter.ElogUrl,
+			ElogEncryptUrl:      global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *order.Letter.ElogEncryptUrl + "&type=encrypt",
+			TenderDeposit:       *order.Letter.TenderDeposit,
+			InsureStartDate:     *order.Letter.InsureStartDate,
+			InsureEndDate:       *order.Letter.InsureEndDate,
+			InsureDay:           *order.Letter.InsureDay,
+			ValidateCode:        *order.Letter.ValidateCode,
+		}
+		req, err := lgjx2.GenJRRequest(lgResultPush)
+		if err != nil {
+			return err
+		}
+		var res jrresponse.JRResponse
+		client := resty.New()
+		resp, err := client.R().
+			SetBody(&req).
+			SetResult(&res).
+			Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode() == http.StatusOK {
+			if res.Code != 0 {
+				err := errors.New(res.Msg)
+				global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+				return err
+			} else {
+				byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+				if err != nil {
+					return err
+				}
+				jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+				if err != nil {
+					return err
+				}
+				var resData jrclientresponse.Response
+				err = json.Unmarshal([]byte(jsonData), &resData)
+				if err != nil {
+					return err
+				}
+				if resData.ReceiveResult != "success" {
+					global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+					return errors.New("接收结果不为success")
+				}
+			}
+		} else {
+			return errors.New("交易中心响应失败")
+		}
+	}
 	return err
 }
 

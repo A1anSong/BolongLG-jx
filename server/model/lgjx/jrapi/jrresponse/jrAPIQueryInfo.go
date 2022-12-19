@@ -6,11 +6,12 @@ type JRAPIQueryInfo struct {
 	ProductNo           *string  `json:"productNo"`
 	ProductType         *int64   `json:"productType"`
 	ProductRate         *float64 `json:"productRate"`
+	ElogAmount          *float64 `json:"elogAmount"`
 	InsuranceName       *string  `json:"insuranceName"`
 	InsuranceCreditCode *string  `json:"insuranceCreditCode"`
-	EloOutDate          *string  `json:"eloOutDate"`
-	EloUrl              *string  `json:"eloUrl"`
-	EloEncryptUrl       *string  `json:"eloEncryptUrl"`
+	ElogOutDate         *string  `json:"elogOutDate"`
+	ElogUrl             *string  `json:"elogUrl"`
+	ElogEncryptUrl      *string  `json:"elogEncryptUrl"`
 	TenderDeposit       *float64 `json:"tenderDeposit"`
 	InsureStartDate     *string  `json:"insureStartDate"`
 	InsureEndDate       *string  `json:"insureEndDate"`

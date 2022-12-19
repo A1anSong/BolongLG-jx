@@ -53,7 +53,7 @@
         <el-table-column align="left" label="操作" min-width="200" fixed="right">
           <template #default="scope">
             <el-button
-              v-if="scope.row.auditStatus===1"
+              v-if="scope.row.auditStatus!==2 && scope.row.auditStatus!==3"
               type="success"
               icon="select"
               size="small"
@@ -61,7 +61,7 @@
             >通过
             </el-button>
             <el-button
-              v-if="scope.row.auditStatus===1"
+              v-if="scope.row.auditStatus!==2 && scope.row.auditStatus!==3"
               type="danger"
               icon="closeBold"
               size="small"

@@ -27,7 +27,12 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File, isDevelop bool) (lette
 	}
 
 	currentTime := time.Now()
-	elogNo := GenerateMD5String([]byte(*order.OrderNo + time.Now().String()))
+	var elogNo string
+	if order.Delay != nil {
+		elogNo = *order.Delay.ElogNo
+	} else {
+		elogNo = GenerateMD5String([]byte(*order.OrderNo + time.Now().String()))
+	}
 	insuredName := *order.Project.TendereeName
 	insureName := *order.Apply.InsureName
 	projectNo := *order.Project.ProjectNo

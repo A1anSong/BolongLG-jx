@@ -27,6 +27,9 @@
         <el-form-item label="订单状态">
           <el-select v-model="searchInfo.orderStatus" clearable>
             <el-option
+              value="已撤"
+            />
+            <el-option
               value="未开"
             />
             <el-option

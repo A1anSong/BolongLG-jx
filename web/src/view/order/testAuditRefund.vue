@@ -27,6 +27,9 @@
         <el-form-item label="订单状态">
           <el-select v-model="searchInfo.orderStatus" clearable>
             <el-option
+              value="已撤"
+            />
+            <el-option
               value="未开"
             />
             <el-option
@@ -367,7 +370,7 @@
         <el-table-column align="center" label="操作" min-width="200" fixed="right">
           <template #default="scope">
             <el-button
-              v-if="scope.row.refund.auditStatus===1"
+              v-if="scope.row.refund.auditStatus!==2&&scope.row.refund.auditStatus!==3"
               type="success"
               icon="select"
               size="small"
@@ -375,7 +378,7 @@
             >通过
             </el-button>
             <el-button
-              v-if="scope.row.refund.auditStatus===1"
+              v-if="scope.row.refund.auditStatus!==2&&scope.row.refund.auditStatus!==3"
               type="danger"
               icon="closeBold"
               size="small"

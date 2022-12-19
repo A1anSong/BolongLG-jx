@@ -121,6 +121,14 @@ export const openLetter = (data) => {
   })
 }
 
+export const rePush = (data) => {
+  return service({
+    url: '/testOrder/rePush',
+    method: 'put',
+    data
+  })
+}
+
 export const getOrderStatisticData = (params) => {
   return service({
     url: '/testOrder/getOrderStatisticData',

@@ -154,6 +154,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		if err = tx.Create(&pay).Error; err != nil {
 			return err
 		}
+		// TODO: PayID改成Pay，验证是否会绑定Pay不成功的情况
 		order.PayID = &pay.ID
 		if err = tx.Save(&order).Error; err != nil {
 			return err
@@ -197,8 +198,8 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 					InsuranceName:       *letter.InsuranceName,
 					InsuranceCreditCode: *letter.InsuranceCreditCode,
 					ElogOutDate:         *letter.ElogOutDate,
-					ElogUrl:             *letter.ElogUrl,
-					ElogEncryptUrl:      *letter.ElogEncryptUrl,
+					ElogUrl:             global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *letter.ElogUrl,
+					ElogEncryptUrl:      global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *letter.ElogEncryptUrl + "&type=encrypt",
 					TenderDeposit:       *letter.TenderDeposit,
 					InsureStartDate:     *letter.InsureStartDate,
 					InsureEndDate:       *letter.InsureEndDate,
@@ -220,8 +221,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 				}
 				if resp.StatusCode() == http.StatusOK {
 					if res.Code != 0 {
-						code := (jrapi.ResponseCode)(res.Code)
-						err := errors.New(code.String())
+						err := errors.New(res.Msg)
 						global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
 						return err
 					} else {
@@ -265,26 +265,55 @@ func (testJRAPIService *TestJRAPIService) QueryInfo(reQueryInfo jrrequest.JRAPIQ
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
-		var letter lgjx.Letter
-		if err = tx.Where("elog_no = ?", reQueryInfo.ElogNo).Preload("Order").Preload("Order.Apply").First(&letter).Error; err != nil {
+		var order lgjx.Order
+		if err = tx.Model(&lgjx.Order{}).Joins("Letter").Where("Letter.elog_no = ?", reQueryInfo.ElogNo).Preload(clause.Associations).First(&order).Error; err != nil {
 			return err
 		}
+		elogAmount := *order.Pay.PayAmount
+		insuranceName := *order.Letter.InsuranceName
+		insuranceCreditCode := *order.Letter.InsuranceCreditCode
+		elogOutDate := *order.Letter.ElogOutDate
+		var elogUrl string
+		var elogEncryptUrl string
+		var tenderDeposit float64
+		var insureStartDate string
+		var insureEndDate string
+		var insureDay int64
+		var validateCode string
+		if order.Delay != nil {
+			elogUrl = global.GVA_CONFIG.Insurance.APIDoaminTest + "/delayFileDownload?elog=" + *order.Delay.ElogUrl
+			elogEncryptUrl = global.GVA_CONFIG.Insurance.APIDoaminTest + "/delayFileDownload?elog=" + *order.Delay.ElogEncryptUrl + "&type=encrypt"
+			tenderDeposit = *order.Delay.TenderDeposit
+			insureStartDate = *order.Delay.InsureStartDate
+			insureEndDate = *order.Delay.InsureEndDate
+			insureDay = *order.Delay.InsureDay
+			validateCode = *order.Delay.ValidateCode
+		} else {
+			elogUrl = global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *order.Letter.ElogUrl
+			elogEncryptUrl = global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *order.Letter.ElogEncryptUrl + "&type=encrypt"
+			tenderDeposit = *order.Letter.TenderDeposit
+			insureStartDate = *order.Letter.InsureStartDate
+			insureEndDate = *order.Letter.InsureEndDate
+			insureDay = *order.Letter.InsureDay
+			validateCode = *order.Delay.ValidateCode
+		}
 		resQueryInfo = jrresponse.JRAPIQueryInfo{
-			OrderNo:             letter.OrderNo,
-			ElogNo:              letter.ElogNo,
-			ProductNo:           letter.Order.Apply.ProductNo,
-			ProductType:         letter.Order.Apply.ProductType,
-			ProductRate:         letter.Order.Apply.ProductRate,
-			InsuranceName:       letter.InsuranceName,
-			InsuranceCreditCode: letter.InsuranceCreditCode,
-			EloOutDate:          letter.ElogOutDate,
-			EloUrl:              letter.ElogUrl,
-			EloEncryptUrl:       letter.ElogEncryptUrl,
-			TenderDeposit:       letter.TenderDeposit,
-			InsureStartDate:     letter.InsureStartDate,
-			InsureEndDate:       letter.InsureEndDate,
-			InsureDay:           letter.InsureDay,
-			ValidateCode:        letter.ValidateCode,
+			OrderNo:             order.OrderNo,
+			ElogNo:              order.Letter.ElogNo,
+			ProductNo:           order.Apply.ProductNo,
+			ProductType:         order.Apply.ProductType,
+			ProductRate:         order.Apply.ProductRate,
+			ElogAmount:          &elogAmount,
+			InsuranceName:       &insuranceName,
+			InsuranceCreditCode: &insuranceCreditCode,
+			ElogOutDate:         &elogOutDate,
+			ElogUrl:             &elogUrl,
+			ElogEncryptUrl:      &elogEncryptUrl,
+			TenderDeposit:       &tenderDeposit,
+			InsureStartDate:     &insureStartDate,
+			InsureEndDate:       &insureEndDate,
+			InsureDay:           &insureDay,
+			ValidateCode:        &validateCode,
 		}
 		return nil
 	})
@@ -514,8 +543,18 @@ func (testJRAPIService *TestJRAPIService) LogoutPush(reLogoutPush jrrequest.JRAP
 		if err = tx.Create(&logout).Error; err != nil {
 			return err
 		}
-		if err = tx.Model(&lgjx.Order{}).Joins("Apply").Where("Apply.project_guid = ?", reLogoutPush.ProjectGuid).Update("logout_id", logout.ID).Error; err != nil {
+		var orders []lgjx.Order
+		if err = tx.Model(&lgjx.Order{}).Joins("Apply").Where("Apply.project_guid = ?", reLogoutPush.ProjectGuid).Find(&orders).Error; err != nil {
 			return err
+		}
+		if len(orders) > 0 {
+			for i := range orders {
+				orders[i].LogoutID = &logout.ID
+			}
+			err = tx.Save(&orders).Error
+			if err != nil {
+				return err
+			}
 		}
 		receiveResult := "success"
 		resLogoutPush = jrresponse.JRAPILogoutPush{
@@ -574,6 +613,29 @@ func (testJRAPIService *TestJRAPIService) LetterFileDownload(elog string, encryp
 		db = db.Where("elog_url = ?", elog)
 	}
 	err = db.Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
+	if err != nil {
+		return lgjx.File{}, err
+	}
+	if encrypt {
+		file = *letter.ElogEncryptFile
+	} else {
+		file = *letter.ElogFile
+	}
+	return
+}
+
+func (testJRAPIService *TestJRAPIService) DelayFileDownload(elog string, encrypt bool) (file lgjx.File, err error) {
+	var letter lgjx.Letter
+	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Delay{})
+	if encrypt {
+		db = db.Where("elog_encrypt_url = ?", elog)
+	} else {
+		db = db.Where("elog_url = ?", elog)
+	}
+	err = db.Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
+	if err != nil {
+		return lgjx.File{}, err
+	}
 	if encrypt {
 		file = *letter.ElogEncryptFile
 	} else {

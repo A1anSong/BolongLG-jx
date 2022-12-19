@@ -90,7 +90,7 @@
           />
         </el-form-item>
         <el-form-item label="担保期限" clearable>
-          <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" clearable />
+          <el-input v-model.number="searchInfo.insureDay" placeholder="搜索条件" />
         </el-form-item>
         <el-form-item>
           <el-button size="small" type="primary" icon="search" @click="onSubmit">查询</el-button>
@@ -99,20 +99,19 @@
       </el-form>
     </div>
     <div class="gva-table-box">
-      <div class="gva-btn-list">
-        <!--              <el-button size="small" type="primary" icon="plus" @click="openDialog">新增</el-button>-->
-        <!--              <el-popover v-model:visible="deleteVisible" placement="top" width="160">-->
-        <!--                <p>确定要删除吗？</p>-->
-        <!--                <div style="text-align: right; margin-top: 8px;">-->
-        <!--                  <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>-->
-        <!--                  <el-button size="small" type="primary" @click="onDelete">确定</el-button>-->
-        <!--                </div>-->
-        <!--                <template #reference>-->
-        <!--                  <el-button icon="delete" size="small" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>-->
-        <!--                </template>-->
-        <!--              </el-popover>-->
-        <el-button size="small" type="success" icon="document" @click="exportExcel">导出excel</el-button>
-      </div>
+      <!--      <div class="gva-btn-list">-->
+      <!--        <el-button size="small" type="primary" icon="plus" @click="openDialog">新增</el-button>-->
+      <!--        <el-popover v-model:visible="deleteVisible" placement="top" width="160">-->
+      <!--          <p>确定要删除吗？</p>-->
+      <!--          <div style="text-align: right; margin-top: 8px;">-->
+      <!--            <el-button size="small" type="primary" link @click="deleteVisible = false">取消</el-button>-->
+      <!--            <el-button size="small" type="primary" @click="onDelete">确定</el-button>-->
+      <!--          </div>-->
+      <!--          <template #reference>-->
+      <!--            <el-button icon="delete" size="small" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>-->
+      <!--          </template>-->
+      <!--        </el-popover>-->
+      <!--      </div>-->
       <el-table
         ref="multipleTable"
         style="width: 100%"
@@ -247,12 +246,7 @@
                       scope.row.letter.elogNo
                     }}
                     </el-descriptions-item>
-                    <el-descriptions-item label="出函时间">{{ scope.row.letter.elogOutDate }}</el-descriptions-item>
-                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
-                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
-                    <el-descriptions-item label="担保金额">{{ scope.row.letter.tenderDeposit }}</el-descriptions-item>
-                    <el-descriptions-item label="担保开始时间">{{ scope.row.letter.insureStartDate }}</el-descriptions-item>
-                    <el-descriptions-item label="担保截止时间">{{ scope.row.letter.insureEndDate }}</el-descriptions-item>
+                    <el-descriptions-item label="保函文件">{{ scope.row.letter.elogUrl }}</el-descriptions-item>
                     <el-descriptions-item label="担保期限（天）">{{ scope.row.letter.insureDay }}</el-descriptions-item>
                     <el-descriptions-item label="验真码">{{ scope.row.letter.validateCode }}</el-descriptions-item>
                   </el-descriptions>
@@ -265,9 +259,6 @@
                     border
                   >
                     <el-descriptions-item label="延期" width="50px">延期</el-descriptions-item>
-                    <el-descriptions-item label="出函时间">{{ scope.row.letter.elogOutDate }}</el-descriptions-item>
-                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
-                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
                   </el-descriptions>
                   <el-descriptions
                     v-if="orderStatus(scope.row)==='退函'"
@@ -376,32 +367,26 @@
           <el-table-column align="center" label="工号" prop="employeeNo" min-width="120px" />
           <el-table-column align="center" label="业务员" prop="employeeNo" min-width="120px" />
         </el-table-column>
-        <!--        <el-table-column align="left" label="操作" min-width="240" fixed="right">-->
-        <!--          <template #default="scope">-->
-        <!--            <el-button-->
-        <!--              type="primary"-->
-        <!--              link-->
-        <!--              icon="edit"-->
-        <!--              size="small"-->
-        <!--              class="table-button"-->
-        <!--              @click="updateOrderFunc(scope.row)"-->
-        <!--            >变更-->
-        <!--            </el-button>-->
-        <!--            <el-button type="primary" link icon="delete" size="small" @click="deleteRow(scope.row)">删除</el-button>-->
-        <!--          </template>-->
-        <!--        </el-table-column>-->
+        <el-table-column align="center" label="操作" min-width="200" fixed="right">
+          <template #default="scope">
+            <el-button
+              v-if="scope.row.project"
+              type="success"
+              icon="select"
+              size="small"
+              @click="rePushFunc(scope.row)"
+            >重推
+            </el-button>
+            <el-tag
+              v-if="scope.row.project === null"
+              type="info"
+              effect="dark"
+              size="large"
+            >待绑定项目才后可重推
+            </el-tag>
+          </template>
+        </el-table-column>
       </el-table>
-      <el-card shadow="always" style="float: left">
-        累计成功(未理赔，未退函)担保金额为
-        <span style="color: red">
-          {{ statisticData.totalGuaranteeAmount.toFixed(2) }}
-        </span>
-        元，收取保函费用为
-        <span style="color: red">
-          {{ statisticData.totalElogAmount.toFixed(2) }}
-        </span>
-        元
-      </el-card>
       <div class="gva-pagination">
         <el-pagination
           layout="total, sizes, prev, pager, next, jumper"
@@ -432,7 +417,7 @@
 
 <script>
 export default {
-  name: 'TestOrder'
+  name: 'TestRepush'
 }
 </script>
 
@@ -444,7 +429,7 @@ import {
   updateOrder,
   findOrder,
   getOrderList,
-  getOrderStatisticData, downloadExcel
+  rePush
 } from '@/api/testOrder'
 
 // 全量引入格式化工具 请按需保留
@@ -475,12 +460,8 @@ const page = ref(1)
 const total = ref(0)
 const pageSize = ref(10)
 const tableData = ref([])
-const searchInfo = ref({})
+const searchInfo = ref({ orderStatus: '已开', isPayed: true })
 const templateData = ref([])
-const statisticData = ref({
-  totalGuaranteeAmount: 0.0,
-  totalElogAmount: 0.0,
-})
 
 // 重置
 const onReset = () => {
@@ -515,10 +496,6 @@ const getTableData = async() => {
     total.value = table.data.total
     page.value = table.data.page
     pageSize.value = table.data.pageSize
-  }
-  const statistic = await getOrderStatisticData()
-  if (statistic.code === 0) {
-    statisticData.value = statistic.data.orderStatisticData
   }
 }
 
@@ -662,9 +639,15 @@ const enterDialog = async() => {
   })
 }
 
-// 导出excel
-const exportExcel = async() => {
-  downloadExcel({ page: 1, pageSize: 9999, ...searchInfo.value })
+const rePushFunc = async(apply) => {
+  const res = await rePush(apply)
+  if (res.code === 0) {
+    ElMessage({
+      type: 'success',
+      message: '提交成功'
+    })
+    getTableData()
+  }
 }
 </script>
 
