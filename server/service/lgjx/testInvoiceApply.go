@@ -70,7 +70,7 @@ func (testInvoiceApplyService *TestInvoiceApplyService) GetInvoiceApplyInfoList(
 func (testInvoiceApplyService *TestInvoiceApplyService) ApproveInvoiceApply(invoiceApply lgjx.InvoiceApply) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理成功"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		invoiceApply.AuditStatus = &auditStatus
 		invoiceApply.AuditOpinion = &auditOpinion
@@ -175,7 +175,7 @@ func (testInvoiceApplyService *TestInvoiceApplyService) ApproveInvoiceApply(invo
 func (testInvoiceApplyService *TestInvoiceApplyService) RejectInvoiceApply(invoiceApply lgjx.InvoiceApply) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理失败"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		invoiceApply.AuditStatus = &auditStatus
 		invoiceApply.AuditOpinion = &auditOpinion

@@ -110,7 +110,7 @@
           <el-input v-model="formData.projectNo" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="项目金额:" prop="projectAmount">
-          <el-input-number v-model="formData.projectAmount" style="width:100%" :precision="2" :clearable="true" />
+          <el-input-number v-model="formData.projectAmount" style="width:100%" :precision="2" :clearable="true" placeholder="请输入" :controls="false" />
         </el-form-item>
         <el-form-item label="招标人名称:" prop="tendereeName">
           <el-input v-model="formData.tendereeName" :clearable="true" placeholder="请输入" />
@@ -125,7 +125,7 @@
           <el-input v-model="formData.agentTel" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="担保金额:" prop="tenderDeposit">
-          <el-input-number v-model="formData.tenderDeposit" style="width:100%" :precision="2" :clearable="true" />
+          <el-input-number v-model="formData.tenderDeposit" style="width:100%" :precision="2" :clearable="true" placeholder="请输入" :controls="false" />
         </el-form-item>
         <el-form-item label="项目开标时间:" prop="projectOpenTime">
           <el-date-picker
@@ -470,4 +470,7 @@ const changeProjectEnable = async(val, row) => {
 </script>
 
 <style>
+.el-input-number .el-input__inner{
+  text-align: left;
+}
 </style>

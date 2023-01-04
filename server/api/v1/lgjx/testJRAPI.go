@@ -33,11 +33,20 @@ func (testJRAPI *TestJRAPI) Apply(c *gin.Context) {
 	}
 	var resApply jrresponse.JRAPIApply
 	if resApply, err = testJRAPIService.ApplyOrder(reApply); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Apply失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resApply); err != nil {
@@ -67,11 +76,20 @@ func (testJRAPI *TestJRAPI) PayPush(c *gin.Context) {
 	}
 	var resPayPush jrresponse.JRAPIPayPush
 	if resPayPush, err = testJRAPIService.PayPush(rePayPush); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Pay失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resPayPush); err != nil {
@@ -101,11 +119,20 @@ func (testJRAPI *TestJRAPI) QueryInfo(c *gin.Context) {
 	}
 	var resQueryInfo jrresponse.JRAPIQueryInfo
 	if resQueryInfo, err = testJRAPIService.QueryInfo(reQueryInfo); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("查询QueryInfo失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resQueryInfo); err != nil {
@@ -135,11 +162,20 @@ func (testJRAPI *TestJRAPI) RevokePush(c *gin.Context) {
 	}
 	var resRevokePush jrresponse.JRAPIRevokePush
 	if resRevokePush, err = testJRAPIService.RevokePush(reRevokePush); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Revoke失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resRevokePush); err != nil {
@@ -169,11 +205,20 @@ func (testJRAPI *TestJRAPI) ApplyDelay(c *gin.Context) {
 	}
 	var resApplyDelay jrresponse.JRAPIApplyDelay
 	if resApplyDelay, err = testJRAPIService.ApplyDelay(reApplyDelay); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Delay失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resApplyDelay); err != nil {
@@ -203,11 +248,20 @@ func (testJRAPI *TestJRAPI) ApplyRefund(c *gin.Context) {
 	}
 	var resApplyRefund jrresponse.JRAPIApplyRefund
 	if resApplyRefund, err = testJRAPIService.ApplyRefund(reApplyRefund); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Refund失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resApplyRefund); err != nil {
@@ -237,11 +291,20 @@ func (testJRAPI *TestJRAPI) ApplyClaim(c *gin.Context) {
 	}
 	var resApplyClaim jrresponse.JRAPIApplyClaim
 	if resApplyClaim, err = testJRAPIService.ApplyClaim(reApplyClaim); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Claim失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resApplyClaim); err != nil {
@@ -271,11 +334,20 @@ func (testJRAPI *TestJRAPI) LogoutPush(c *gin.Context) {
 	}
 	var resLogoutPush jrresponse.JRAPILogoutPush
 	if resLogoutPush, err = testJRAPIService.LogoutPush(reLogoutPush); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建Logout失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resLogoutPush); err != nil {
@@ -305,11 +377,20 @@ func (testJRAPI *TestJRAPI) ApplyInvoice(c *gin.Context) {
 	}
 	var resApplyInvoice jrresponse.JRAPIApplyInvoice
 	if resApplyInvoice, err = testJRAPIService.ApplyInvoice(reApplyInvoice); err != nil {
-		c.JSON(http.StatusOK, jrresponse.JRResponse{
-			Code: int(jrapi.MissingServiceParam),
-			Msg:  jrapi.MissingServiceParam.String(),
-			Data: "",
-		})
+		global.GVA_LOG.Error("创建ApplyInvoice失败!", zap.Error(err))
+		if err.Error() == jrapi.MissingServiceParam.String() {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.MissingServiceParam),
+				Msg:  jrapi.MissingServiceParam.String(),
+				Data: "",
+			})
+		} else {
+			c.JSON(http.StatusOK, jrresponse.JRResponse{
+				Code: int(jrapi.FAILED),
+				Msg:  err.Error(),
+				Data: "",
+			})
+		}
 	} else {
 		var response jrresponse.JRResponse
 		if response, err = lgjx.GenJRResponse(resApplyInvoice); err != nil {

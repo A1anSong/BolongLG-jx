@@ -152,7 +152,7 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理成功"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Apply.AuditStatus = &auditStatus
 		order.Apply.AuditOpinion = &auditOpinion
@@ -235,7 +235,7 @@ func (testOrderService *TestOrderService) ApproveApply(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理失败"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Apply.AuditStatus = &auditStatus
 		order.Apply.AuditOpinion = &auditOpinion
@@ -318,7 +318,7 @@ func (testOrderService *TestOrderService) RejectApply(order lgjx.Order) (err err
 func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理成功"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Delay.AuditStatus = &auditStatus
 		order.Delay.AuditOpinion = &auditOpinion
@@ -424,7 +424,7 @@ func (testOrderService *TestOrderService) ApproveDelay(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理失败"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Delay.AuditStatus = &auditStatus
 		order.Delay.AuditOpinion = &auditOpinion
@@ -506,7 +506,7 @@ func (testOrderService *TestOrderService) RejectDelay(order lgjx.Order) (err err
 func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理成功"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Refund.AuditStatus = &auditStatus
 		order.Refund.AuditOpinion = &auditOpinion
@@ -578,7 +578,7 @@ func (testOrderService *TestOrderService) ApproveRefund(order lgjx.Order) (err e
 func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理失败"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Refund.AuditStatus = &auditStatus
 		order.Refund.AuditOpinion = &auditOpinion
@@ -649,7 +649,7 @@ func (testOrderService *TestOrderService) RejectRefund(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(2)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理成功"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Claim.AuditStatus = &auditStatus
 		order.Claim.AuditOpinion = &auditOpinion
@@ -723,7 +723,7 @@ func (testOrderService *TestOrderService) ApproveClaim(order lgjx.Order) (err er
 func (testOrderService *TestOrderService) RejectClaim(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		auditStatus := int64(3)
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "受理失败"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		order.Claim.AuditStatus = &auditStatus
 		order.Claim.AuditOpinion = &auditOpinion

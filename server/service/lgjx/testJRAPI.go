@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/lgjx/jrapi"
@@ -55,14 +54,19 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("order_no = ? AND apply_no = ?", reApply.OrderNo, reApply.ApplyNo).
+			First(&lgjx.Apply{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("相同订单和开函申请已经存在")
+		}
+
 		order := &lgjx.Order{
 			OrderNo: reApply.OrderNo,
 		}
 		if err = tx.Create(&order).Error; err != nil {
-			return err
+			return errors.New("创建订单失败")
 		}
 		var auditStatus int64 = 1
-		auditOpinion := "todo:意见审批"
+		auditOpinion := "待受理"
 		auditDate := time.Now().Format("2006-01-02 15:04:05")
 		attachInfo, _ := json.Marshal(reApply.AttachInfo)
 		attachInfoString := string(attachInfo)
@@ -102,20 +106,23 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 			AuditDate:         &auditDate,
 		}
 		if err = tx.Create(&apply).Error; err != nil {
-			return err
+			return errors.New("创建申请失败")
+		}
+		order.ApplyID = &apply.ID
+		if err = tx.Save(&order).Error; err != nil {
+			return errors.New("更新订单失败")
 		}
 		var project lgjx.Project
 		err = tx.Model(&lgjx.Project{}).Where("project_no = ? AND is_enable = TRUE", apply.ProjectNo).First(&project).Error
 		if err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				return err
+				return errors.New("连接项目数据库失败")
 			}
 		} else {
 			order.ProjectID = &project.ID
-		}
-		order.ApplyID = &apply.ID
-		if err = tx.Save(&order).Error; err != nil {
-			return err
+			if err = tx.Save(&order).Error; err != nil {
+				return errors.New("更新订单项目失败")
+			}
 		}
 		resApply = jrresponse.JRAPIApply{
 			OrderNo:      reApply.OrderNo,
@@ -139,9 +146,18 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("order_no = ? AND pay_no = ?", rePayPush.OrderNo, rePayPush.PayNo).
+			First(&lgjx.Pay{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("相同订单和支付结果已经存在")
+		}
+
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload(clause.Associations).Preload("Project.Template").First(&order).Error; err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("该订单" + *order.OrderNo + "不存在")
+			} else {
+				return errors.New("查询相应订单" + *order.OrderNo + "失败")
+			}
 		}
 		pay := &lgjx.Pay{
 			OrderID:    &order.ID,
@@ -152,12 +168,11 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 			PayTransNo: rePayPush.PayTransNo,
 		}
 		if err = tx.Create(&pay).Error; err != nil {
-			return err
+			return errors.New(*order.OrderNo + "创建支付结果失败")
 		}
-		// TODO: PayID改成Pay，验证是否会绑定Pay不成功的情况
 		order.PayID = &pay.ID
 		if err = tx.Save(&order).Error; err != nil {
-			return err
+			return errors.New(*order.OrderNo + "更新订单失败")
 		}
 		receiveResult := "success"
 		resPayPush = jrresponse.JRAPIPayPush{
@@ -167,28 +182,28 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(subTx *gorm.DB) error {
 			var templateFile lgjx.File
 			if err = subTx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
-				return err
+				return errors.New("查询" + *order.OrderNo + "模板失败")
 			}
 			var letter lgjx.Letter
 			var file lgjx.File
 			var encryptFile lgjx.File
 			if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
-				return err
+				return errors.New("自动开函" + *order.OrderNo + "流程失败：" + err.Error())
 			}
 			if err = subTx.Create(&file).Error; err != nil {
-				return err
+				return errors.New("创建" + *order.OrderNo + "电子保函文件失败")
 			}
 			if err = subTx.Create(&encryptFile).Error; err != nil {
-				return err
+				return errors.New("创建" + *order.OrderNo + "电子保函密文文件失败")
 			}
 			letter.ElogFileID = &file.ID
 			letter.ElogEncryptFileID = &encryptFile.ID
 			if err = subTx.Create(&letter).Error; err != nil {
-				return err
+				return errors.New("创建" + *order.OrderNo + "电子保函失败")
 			}
 			order.LetterID = &letter.ID
 			if err = subTx.Save(&order).Error; err != nil {
-				return err
+				return errors.New("更新" + *order.OrderNo + "订单失败")
 			}
 			if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
 				apiPath := "/jrapi/lg/lgResultPush"
@@ -208,7 +223,7 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 				}
 				req, err := lgjx2.GenJRRequest(lgResultPush)
 				if err != nil {
-					return err
+					return errors.New("创建" + *order.OrderNo + "出函结果失败")
 				}
 				var res jrresponse.JRResponse
 				client := resty.New()
@@ -247,11 +262,10 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 					return errors.New("交易中心响应失败")
 				}
 			}
-
 			return nil
 		})
 		if err != nil {
-			fmt.Println(err.Error())
+			global.GVA_LOG.Error("自动化开函失败!", zap.Error(err))
 		}
 
 		return nil
@@ -267,7 +281,11 @@ func (testJRAPIService *TestJRAPIService) QueryInfo(reQueryInfo jrrequest.JRAPIQ
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		var order lgjx.Order
 		if err = tx.Model(&lgjx.Order{}).Joins("Letter").Where("Letter.elog_no = ?", reQueryInfo.ElogNo).Preload(clause.Associations).First(&order).Error; err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("该电子保函" + *reQueryInfo.ElogNo + "不存在")
+			} else {
+				return errors.New("查询相应保函" + *reQueryInfo.ElogNo + "失败")
+			}
 		}
 		elogAmount := *order.Pay.PayAmount
 		insuranceName := *order.Letter.InsuranceName
@@ -328,9 +346,17 @@ func (testJRAPIService *TestJRAPIService) RevokePush(reRevokePush jrrequest.JRAP
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("order_no = ?", reRevokePush.OrderNo).
+			First(&lgjx.Revoke{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("该订单" + *reRevokePush.OrderNo + "已经撤单")
+		}
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", reRevokePush.OrderNo).First(&order).Error; err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("该订单" + *order.OrderNo + "不存在")
+			} else {
+				return errors.New("查询相应订单" + *order.OrderNo + "失败")
+			}
 		}
 		revoke := &lgjx.Revoke{
 			OrderID:      &order.ID,
@@ -339,11 +365,11 @@ func (testJRAPIService *TestJRAPIService) RevokePush(reRevokePush jrrequest.JRAP
 			RevokeReason: reRevokePush.RevokeReason,
 		}
 		if err = tx.Create(&revoke).Error; err != nil {
-			return err
+			return errors.New("创建" + *order.OrderNo + "撤单失败")
 		}
 		order.RevokeID = &revoke.ID
 		if err = tx.Save(&order).Error; err != nil {
-			return err
+			return errors.New("更新" + *order.OrderNo + "订单失败")
 		}
 		receiveResult := "success"
 		resRevokePush = jrresponse.JRAPIRevokePush{
@@ -375,9 +401,17 @@ func (testJRAPIService *TestJRAPIService) ApplyDelay(reApplyDelay jrrequest.JRAP
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("order_no = ?", reApplyDelay.OrderNo).
+			First(&lgjx.Delay{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("该订单" + *reApplyDelay.OrderNo + "已有延期申请")
+		}
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", reApplyDelay.OrderNo).First(&order).Error; err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("该订单" + *order.OrderNo + "不存在")
+			} else {
+				return errors.New("查询相应订单" + *order.OrderNo + "失败")
+			}
 		}
 		attachInfo, _ := json.Marshal(reApplyDelay.AttachInfo)
 		attachInfoString := string(attachInfo)
@@ -402,11 +436,11 @@ func (testJRAPIService *TestJRAPIService) ApplyDelay(reApplyDelay jrrequest.JRAP
 			AttachInfo:       &attachInfoString,
 		}
 		if err = tx.Create(&delay).Error; err != nil {
-			return err
+			return errors.New("创建" + *order.OrderNo + "延期申请失败")
 		}
 		order.DelayID = &delay.ID
 		if err = tx.Save(&order).Error; err != nil {
-			return err
+			return errors.New("更新" + *order.OrderNo + "订单失败")
 		}
 		receiveResult := "success"
 		resApplyDelay = jrresponse.JRAPIApplyDelay{
@@ -431,9 +465,17 @@ func (testJRAPIService *TestJRAPIService) ApplyRefund(reApplyRefund jrrequest.JR
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("order_no = ?", reApplyRefund.OrderNo).
+			First(&lgjx.Refund{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("该订单" + *reApplyRefund.OrderNo + "已有退函申请")
+		}
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", reApplyRefund.OrderNo).First(&order).Error; err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("该订单" + *order.OrderNo + "不存在")
+			} else {
+				return errors.New("查询相应订单" + *order.OrderNo + "失败")
+			}
 		}
 		attachInfo, _ := json.Marshal(reApplyRefund.AttachInfo)
 		attachInfoString := string(attachInfo)
@@ -451,11 +493,11 @@ func (testJRAPIService *TestJRAPIService) ApplyRefund(reApplyRefund jrrequest.JR
 			AttachInfo:       &attachInfoString,
 		}
 		if err = tx.Create(&refund).Error; err != nil {
-			return err
+			return errors.New("创建" + *order.OrderNo + "退函申请失败")
 		}
 		order.RefundID = &refund.ID
 		if err = tx.Save(&order).Error; err != nil {
-			return err
+			return errors.New("更新" + *order.OrderNo + "订单失败")
 		}
 		receiveResult := "success"
 		resApplyRefund = jrresponse.JRAPIApplyRefund{
@@ -483,9 +525,17 @@ func (testJRAPIService *TestJRAPIService) ApplyClaim(reApplyClaim jrrequest.JRAP
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("order_no = ?", reApplyClaim.OrderNo).
+			First(&lgjx.Claim{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("该订单" + *reApplyClaim.OrderNo + "已有理赔申请")
+		}
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", reApplyClaim.OrderNo).First(&order).Error; err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("该订单" + *order.OrderNo + "不存在")
+			} else {
+				return errors.New("查询相应订单" + *order.OrderNo + "失败")
+			}
 		}
 		attachInfo, _ := json.Marshal(reApplyClaim.AttachInfo)
 		attachInfoString := string(attachInfo)
@@ -506,11 +556,11 @@ func (testJRAPIService *TestJRAPIService) ApplyClaim(reApplyClaim jrrequest.JRAP
 			AttachInfo:        &attachInfoString,
 		}
 		if err = tx.Create(&claim).Error; err != nil {
-			return err
+			return errors.New("创建" + *order.OrderNo + "理赔申请失败")
 		}
 		order.ClaimID = &claim.ID
 		if err = tx.Save(&order).Error; err != nil {
-			return err
+			return errors.New("更新" + *order.OrderNo + "订单失败")
 		}
 		receiveResult := "success"
 		resApplyClaim = jrresponse.JRAPIApplyClaim{
@@ -531,6 +581,10 @@ func (testJRAPIService *TestJRAPIService) LogoutPush(reLogoutPush jrrequest.JRAP
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("project_no = ?", reLogoutPush.ProjectNo).
+			First(&lgjx.Logout{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("该项目" + *reLogoutPush.ProjectNo + "已有销函通知")
+		}
 		logout := &lgjx.Logout{
 			ProjectGuid:         reLogoutPush.ProjectGuid,
 			ProjectName:         reLogoutPush.ProjectName,
@@ -541,11 +595,13 @@ func (testJRAPIService *TestJRAPIService) LogoutPush(reLogoutPush jrrequest.JRAP
 			WinBidderCreditCode: reLogoutPush.WinBidderCreditCode,
 		}
 		if err = tx.Create(&logout).Error; err != nil {
-			return err
+			return errors.New("创建" + *logout.ProjectNo + "销函通知失败")
 		}
 		var orders []lgjx.Order
 		if err = tx.Model(&lgjx.Order{}).Joins("Apply").Where("Apply.project_guid = ?", reLogoutPush.ProjectGuid).Find(&orders).Error; err != nil {
-			return err
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("查询对应项目" + *reLogoutPush.ProjectNo + "失败")
+			}
 		}
 		if len(orders) > 0 {
 			for i := range orders {
@@ -553,7 +609,7 @@ func (testJRAPIService *TestJRAPIService) LogoutPush(reLogoutPush jrrequest.JRAP
 			}
 			err = tx.Save(&orders).Error
 			if err != nil {
-				return err
+				return errors.New("更新" + *reLogoutPush.ProjectNo + "订单失败")
 			}
 		}
 		receiveResult := "success"
@@ -576,6 +632,10 @@ func (testJRAPIService *TestJRAPIService) ApplyInvoice(reApplyInvoice jrrequest.
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		if !errors.Is(tx.Where("apply_no = ?", reApplyInvoice.ApplyNo).
+			First(&lgjx.InvoiceApply{}).Error, gorm.ErrRecordNotFound) {
+			return errors.New("该发票申请" + *reApplyInvoice.ApplyNo + "已有理赔申请")
+		}
 		orderList, _ := json.Marshal(reApplyInvoice.OrderList)
 		orderListString := string(orderList)
 		invoiceApply := &lgjx.InvoiceApply{
@@ -593,7 +653,7 @@ func (testJRAPIService *TestJRAPIService) ApplyInvoice(reApplyInvoice jrrequest.
 			OrderList:          &orderListString,
 		}
 		if err = tx.Create(&invoiceApply).Error; err != nil {
-			return err
+			return errors.New("创建" + *reApplyInvoice.ApplyNo + "发票申请失败")
 		}
 		receiveResult := "success"
 		resApplyInvoice = jrresponse.JRAPIApplyInvoice{
@@ -612,8 +672,11 @@ func (testJRAPIService *TestJRAPIService) LetterFileDownload(elog string, encryp
 	} else {
 		db = db.Where("elog_url = ?", elog)
 	}
-	err = db.Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
+	err = db.Preload("Order").Preload("Order.Delay").Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
 	if err != nil {
+		return lgjx.File{}, err
+	}
+	if letter.Order.DelayID != nil && *letter.Order.Delay.AuditStatus == 2 {
 		return lgjx.File{}, err
 	}
 	if encrypt {
