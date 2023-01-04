@@ -34,6 +34,8 @@ captcha:
   key-long: 6
   img-width: 240
   img-height: 80
+  open-captcha: 1
+  open-captcha-timeout: 3600
 cors:
   mode: strict-whitelist
   whitelist:
