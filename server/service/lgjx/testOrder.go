@@ -977,6 +977,9 @@ func (testOrderService *TestOrderService) ExportExcel(info lgjxReq.OrderSearch) 
 		db = db.Where("Letter.elog_no = ?", info.ElogNo)
 	}
 	if info.OrderStatus != nil {
+		if *info.OrderStatus == "已撤" {
+			db = db.Where("order.revoke_id is not null")
+		}
 		if *info.OrderStatus == "销函" {
 			db = db.Where("order.logout_id is not null")
 		}
@@ -1033,6 +1036,9 @@ func (testOrderService *TestOrderService) ExportExcel(info lgjxReq.OrderSearch) 
 	}
 	if info.AuditClaim != nil {
 		db = db.Where("order.claim_id is not null")
+	}
+	if info.IsPayed != nil {
+		db = db.Where("order.pay_id is not null")
 	}
 
 	err = db.Limit(limit).Preload(clause.Associations).Order("order.created_at desc").Offset(offset).Find(&orders).Error
