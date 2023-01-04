@@ -35,11 +35,11 @@ captcha:
   img-width: 240
   img-height: 80
 cors:
-  mode: whitelist
+  mode: strict-whitelist
   whitelist:
   - allow-origin: example1.com
-    allow-methods: GET, POST
-    allow-headers: content-type
+    allow-headers: Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id
+    allow-methods: POST, GET
     expose-headers: Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers,
       Content-Type
     allow-credentials: true
