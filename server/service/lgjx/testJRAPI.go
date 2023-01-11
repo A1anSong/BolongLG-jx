@@ -196,6 +196,9 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 			if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
 				return errors.New("查询" + *order.OrderNo + "模板失败")
 			}
+			if err = tx.Where("order_no = ?", rePayPush.OrderNo).Delete(&lgjx.Letter{}).Error; err != nil {
+				return errors.New("删除历史开函数据失败")
+			}
 			var letter lgjx.Letter
 			var file lgjx.File
 			var encryptFile lgjx.File
@@ -419,6 +422,9 @@ func (testJRAPIService *TestJRAPIService) ApplyDelay(reApplyDelay jrrequest.JRAP
 				return errors.New("查询相应订单" + *order.OrderNo + "失败")
 			}
 		}
+		if err = tx.Where("order_no = ?", reApplyDelay.OrderNo).Delete(&lgjx.Delay{}).Error; err != nil {
+			return errors.New("删除历史延期数据失败")
+		}
 		attachInfo, _ := json.Marshal(reApplyDelay.AttachInfo)
 		attachInfoString := string(attachInfo)
 		delay := &lgjx.Delay{
@@ -479,6 +485,9 @@ func (testJRAPIService *TestJRAPIService) ApplyRefund(reApplyRefund jrrequest.JR
 				return errors.New("查询相应订单" + *order.OrderNo + "失败")
 			}
 		}
+		if err = tx.Where("order_no = ?", reApplyRefund.OrderNo).Delete(&lgjx.Refund{}).Error; err != nil {
+			return errors.New("删除历史退函数据失败")
+		}
 		attachInfo, _ := json.Marshal(reApplyRefund.AttachInfo)
 		attachInfoString := string(attachInfo)
 		refund := &lgjx.Refund{
@@ -538,6 +547,9 @@ func (testJRAPIService *TestJRAPIService) ApplyClaim(reApplyClaim jrrequest.JRAP
 			} else {
 				return errors.New("查询相应订单" + *order.OrderNo + "失败")
 			}
+		}
+		if err = tx.Where("order_no = ?", reApplyClaim.OrderNo).Delete(&lgjx.Claim{}).Error; err != nil {
+			return errors.New("删除历史理赔数据失败")
 		}
 		attachInfo, _ := json.Marshal(reApplyClaim.AttachInfo)
 		attachInfoString := string(attachInfo)
@@ -636,7 +648,7 @@ func (testJRAPIService *TestJRAPIService) ApplyInvoice(reApplyInvoice jrrequest.
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		if !errors.Is(tx.Where("apply_no = ?", reApplyInvoice.ApplyNo).
 			First(&lgjx.InvoiceApply{}).Error, gorm.ErrRecordNotFound) {
-			return errors.New("该发票申请" + *reApplyInvoice.ApplyNo + "已有理赔申请")
+			return errors.New("该发票申请" + *reApplyInvoice.ApplyNo + "已经存在")
 		}
 		orderList, _ := json.Marshal(reApplyInvoice.OrderList)
 		orderListString := string(orderList)

@@ -796,6 +796,9 @@ func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err erro
 		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
 			return err
 		}
+		if err = tx.Where("order_no = ?", order.OrderNo).Delete(&lgjx.Letter{}).Error; err != nil {
+			return err
+		}
 		var letter lgjx.Letter
 		var file lgjx.File
 		var encryptFile lgjx.File
@@ -884,6 +887,9 @@ func (testOrderService *TestOrderService) RePush(order lgjx.Order) (err error) {
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
 		var templateFile lgjx.File
 		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
+			return err
+		}
+		if err = tx.Where("order_no = ?", order.OrderNo).Delete(&lgjx.Letter{}).Error; err != nil {
 			return err
 		}
 		var letter lgjx.Letter
