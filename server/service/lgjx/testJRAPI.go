@@ -25,7 +25,7 @@ import (
 type TestJRAPIService struct {
 }
 
-var payLock sync.Mutex
+var testPayLock sync.Mutex
 
 func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIApply) (resApply jrresponse.JRAPIApply, err error) {
 	if reApply.OrderNo == nil ||
@@ -149,8 +149,8 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
-		payLock.Lock()
-		defer payLock.Unlock()
+		testPayLock.Lock()
+		defer testPayLock.Unlock()
 		if !errors.Is(tx.Where("order_no = ? AND pay_no = ?", rePayPush.OrderNo, rePayPush.PayNo).
 			First(&lgjx.Pay{}).Error, gorm.ErrRecordNotFound) {
 			return errors.New("相同订单和支付结果已经存在")
