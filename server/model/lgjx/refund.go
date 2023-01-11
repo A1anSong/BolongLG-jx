@@ -17,7 +17,7 @@ type Refund struct {
 	InsureCreditCode *string  `json:"insureCreditCode" form:"insureCreditCode" gorm:"type:varchar(18);"`
 	ApplicantName    *string  `json:"applicantName" form:"applicantName" gorm:"type:varchar(64);"`
 	ApplicantIdCard  *string  `json:"applicantIdCard" form:"applicantIdCard" gorm:"type:varchar(18);"`
-	ApplicantTel     *string  `json:"applicantTel" form:"applicantTel" gorm:"type:varchar(11);"`
+	ApplicantTel     *string  `json:"applicantTel" form:"applicantTel" gorm:"type:varchar(64);"`
 	Reason           *string  `json:"reason" form:"reason" gorm:"type:text;"`
 	AttachInfo       *string  `json:"attachInfo" form:"attachInfo" gorm:"type:text;"`
 	AuditStatus      *int64   `json:"auditStatus" form:"auditStatus"`

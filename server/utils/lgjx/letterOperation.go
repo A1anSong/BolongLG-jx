@@ -30,6 +30,8 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File, isDevelop bool) (lette
 	var elogNo string
 	if order.Delay != nil {
 		elogNo = *order.Delay.ElogNo
+	} else if order.Letter != nil {
+		elogNo = *order.Letter.ElogNo
 	} else {
 		elogNo = GenerateMD5String([]byte(*order.OrderNo + time.Now().String()))
 	}
@@ -116,11 +118,11 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File, isDevelop bool) (lette
 
 	letterEncryptReader, _ := docx.ReadDocxFile(global.GVA_CONFIG.Insurance.TempDir + fileName + ".docx")
 	letterEncryptDocx := letterEncryptReader.Editable()
-	_ = letterEncryptDocx.Replace("{elogNo}", elogNo, -1)
+	_ = letterEncryptDocx.Replace("{elogNo}", "**********", -1)
 	_ = letterEncryptDocx.Replace("{insuredName}", "**********", -1)
 	_ = letterEncryptDocx.Replace("{insureName}", "**********", -1)
-	_ = letterEncryptDocx.Replace("{projectNo}", *order.Project.ProjectNo, -1)
-	_ = letterEncryptDocx.Replace("{projectName}", *order.Project.ProjectName, -1)
+	_ = letterEncryptDocx.Replace("{projectNo}", "**********", -1)
+	_ = letterEncryptDocx.Replace("{projectName}", "**********", -1)
 	_ = letterEncryptDocx.Replace("{tenderDeposit}", "**********", -1)
 	_ = letterEncryptDocx.Replace("{tenderDepositCNY}", "**********", -1)
 	_ = letterEncryptDocx.Replace("{insuranceName}", insuranceName, -1)
@@ -138,16 +140,16 @@ func OpenLetter(order lgjx.Order, templateFile lgjx.File, isDevelop bool) (lette
 	_ = letterEncryptDocx.Replace("{insureEndDateDay}", strconv.Itoa(insureEndDateDay), -1)
 	_ = letterEncryptDocx.Replace("{insureDay}", strconv.FormatInt(insureDay, 10), -1)
 
-	_ = letterDocx.Replace("{insuredAddress}", "**********", -1)
-	_ = letterDocx.Replace("{projectCategory}", projectCategory, -1)
-	_ = letterDocx.Replace("{projectOpenDateYear}", strconv.Itoa(projectOpenDateYear), -1)
-	_ = letterDocx.Replace("{projectOpenDateMonth}", strconv.Itoa(int(projectOpenDateMonth)), -1)
-	_ = letterDocx.Replace("{projectOpenDateDay}", strconv.Itoa(projectOpenDateDay), -1)
-	_ = letterDocx.Replace("{publishDateYear}", strconv.Itoa(publishDateYear), -1)
-	_ = letterDocx.Replace("{publishDateMonth}", strconv.Itoa(int(publishDateMonth)), -1)
-	_ = letterDocx.Replace("{publishDateDay}", strconv.Itoa(publishDateDay), -1)
-	_ = letterDocx.Replace("{validateUrl}", "**********", -1)
-	_ = letterDocx.Replace("{insureAddress}", "**********", -1)
+	_ = letterEncryptDocx.Replace("{insuredAddress}", "**********", -1)
+	_ = letterEncryptDocx.Replace("{projectCategory}", projectCategory, -1)
+	_ = letterEncryptDocx.Replace("{projectOpenDateYear}", strconv.Itoa(projectOpenDateYear), -1)
+	_ = letterEncryptDocx.Replace("{projectOpenDateMonth}", strconv.Itoa(int(projectOpenDateMonth)), -1)
+	_ = letterEncryptDocx.Replace("{projectOpenDateDay}", strconv.Itoa(projectOpenDateDay), -1)
+	_ = letterEncryptDocx.Replace("{publishDateYear}", strconv.Itoa(publishDateYear), -1)
+	_ = letterEncryptDocx.Replace("{publishDateMonth}", strconv.Itoa(int(publishDateMonth)), -1)
+	_ = letterEncryptDocx.Replace("{publishDateDay}", strconv.Itoa(publishDateDay), -1)
+	_ = letterEncryptDocx.Replace("{validateUrl}", "**********", -1)
+	_ = letterEncryptDocx.Replace("{insureAddress}", "**********", -1)
 	_ = letterEncryptDocx.WriteToFile(global.GVA_CONFIG.Insurance.TempDir + "letter" + fileName + "encrypt.docx")
 
 	_ = os.Remove(global.GVA_CONFIG.Insurance.TempDir + fileName + ".docx")

@@ -18,11 +18,14 @@ import (
 	"gorm.io/gorm/clause"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
 type TestJRAPIService struct {
 }
+
+var payLock sync.Mutex
 
 func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIApply) (resApply jrresponse.JRAPIApply, err error) {
 	if reApply.OrderNo == nil ||
@@ -146,13 +149,15 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		payLock.Lock()
+		defer payLock.Unlock()
 		if !errors.Is(tx.Where("order_no = ? AND pay_no = ?", rePayPush.OrderNo, rePayPush.PayNo).
 			First(&lgjx.Pay{}).Error, gorm.ErrRecordNotFound) {
 			return errors.New("相同订单和支付结果已经存在")
 		}
 
 		var order lgjx.Order
-		if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload(clause.Associations).Preload("Project.Template").First(&order).Error; err != nil {
+		if err = tx.Where("order_no = ?", rePayPush.OrderNo).First(&order).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errors.New("该订单" + *order.OrderNo + "不存在")
 			} else {
@@ -172,16 +177,23 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 		}
 		order.PayID = &pay.ID
 		if err = tx.Save(&order).Error; err != nil {
-			return errors.New(*order.OrderNo + "更新订单失败")
+			return errors.New("更新" + *order.OrderNo + "订单失败")
 		}
 		receiveResult := "success"
 		resPayPush = jrresponse.JRAPIPayPush{
 			ReceiveResult: &receiveResult,
 		}
 
-		err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(subTx *gorm.DB) error {
+		return nil
+	})
+	if err == nil {
+		letterErr := global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+			var order lgjx.Order
+			if err = tx.Where("order_no = ?", rePayPush.OrderNo).Preload(clause.Associations).Preload("Project.Template").First(&order).Error; err != nil {
+				return errors.New("查询该订单" + *rePayPush.OrderNo + "失败")
+			}
 			var templateFile lgjx.File
-			if err = subTx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
+			if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
 				return errors.New("查询" + *order.OrderNo + "模板失败")
 			}
 			var letter lgjx.Letter
@@ -190,19 +202,19 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 			if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
 				return errors.New("自动开函" + *order.OrderNo + "流程失败：" + err.Error())
 			}
-			if err = subTx.Create(&file).Error; err != nil {
+			if err = tx.Create(&file).Error; err != nil {
 				return errors.New("创建" + *order.OrderNo + "电子保函文件失败")
 			}
-			if err = subTx.Create(&encryptFile).Error; err != nil {
+			if err = tx.Create(&encryptFile).Error; err != nil {
 				return errors.New("创建" + *order.OrderNo + "电子保函密文文件失败")
 			}
 			letter.ElogFileID = &file.ID
 			letter.ElogEncryptFileID = &encryptFile.ID
-			if err = subTx.Create(&letter).Error; err != nil {
+			if err = tx.Create(&letter).Error; err != nil {
 				return errors.New("创建" + *order.OrderNo + "电子保函失败")
 			}
 			order.LetterID = &letter.ID
-			if err = subTx.Save(&order).Error; err != nil {
+			if err = tx.Save(&order).Error; err != nil {
 				return errors.New("更新" + *order.OrderNo + "订单失败")
 			}
 			if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
@@ -264,12 +276,10 @@ func (testJRAPIService *TestJRAPIService) PayPush(rePayPush jrrequest.JRAPIPayPu
 			}
 			return nil
 		})
-		if err != nil {
+		if letterErr != nil {
 			global.GVA_LOG.Error("自动化开函失败!", zap.Error(err))
 		}
-
-		return nil
-	})
+	}
 	return
 }
 
@@ -401,10 +411,6 @@ func (testJRAPIService *TestJRAPIService) ApplyDelay(reApplyDelay jrrequest.JRAP
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
-		if !errors.Is(tx.Where("order_no = ?", reApplyDelay.OrderNo).
-			First(&lgjx.Delay{}).Error, gorm.ErrRecordNotFound) {
-			return errors.New("该订单" + *reApplyDelay.OrderNo + "已有延期申请")
-		}
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", reApplyDelay.OrderNo).First(&order).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -465,10 +471,6 @@ func (testJRAPIService *TestJRAPIService) ApplyRefund(reApplyRefund jrrequest.JR
 		return
 	}
 	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
-		if !errors.Is(tx.Where("order_no = ?", reApplyRefund.OrderNo).
-			First(&lgjx.Refund{}).Error, gorm.ErrRecordNotFound) {
-			return errors.New("该订单" + *reApplyRefund.OrderNo + "已有退函申请")
-		}
 		var order lgjx.Order
 		if err = tx.Where("order_no = ?", reApplyRefund.OrderNo).First(&order).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -672,7 +674,7 @@ func (testJRAPIService *TestJRAPIService) LetterFileDownload(elog string, encryp
 	} else {
 		db = db.Where("elog_url = ?", elog)
 	}
-	err = db.Preload("Order").Preload("Order.Delay").Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
+	err = db.Preload("Order").Preload("Order.Delay").Preload("ElogFile").Preload("ElogEncryptFile").Order("created_at desc").First(&letter).Error
 	if err != nil {
 		return lgjx.File{}, err
 	}
@@ -688,21 +690,21 @@ func (testJRAPIService *TestJRAPIService) LetterFileDownload(elog string, encryp
 }
 
 func (testJRAPIService *TestJRAPIService) DelayFileDownload(elog string, encrypt bool) (file lgjx.File, err error) {
-	var letter lgjx.Letter
+	var delay lgjx.Delay
 	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Delay{})
 	if encrypt {
 		db = db.Where("elog_encrypt_url = ?", elog)
 	} else {
 		db = db.Where("elog_url = ?", elog)
 	}
-	err = db.Preload("ElogFile").Preload("ElogEncryptFile").First(&letter).Error
+	err = db.Preload("ElogFile").Preload("ElogEncryptFile").Order("created_at desc").First(&delay).Error
 	if err != nil {
 		return lgjx.File{}, err
 	}
 	if encrypt {
-		file = *letter.ElogEncryptFile
+		file = *delay.ElogEncryptFile
 	} else {
-		file = *letter.ElogFile
+		file = *delay.ElogFile
 	}
 	return
 }

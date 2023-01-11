@@ -266,8 +266,8 @@
                   >
                     <el-descriptions-item label="延期" width="50px">延期</el-descriptions-item>
                     <el-descriptions-item label="出函时间">{{ scope.row.letter.elogOutDate }}</el-descriptions-item>
-                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
-                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'/test/lg/letterFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
+                    <el-descriptions-item label="保函文件"><el-link type="primary" :href="'/test/lg/delayFileDownload?elog='+scope.row.letter.elogUrl">下载</el-link></el-descriptions-item>
+                    <el-descriptions-item label="保函密文文件"><el-link type="primary" :href="'/test/lg/delayFileDownload?elog='+scope.row.letter.elogEncryptUrl+'&type=encrypt'">下载</el-link></el-descriptions-item>
                   </el-descriptions>
                   <el-descriptions
                     v-if="orderStatus(scope.row)==='退函'"

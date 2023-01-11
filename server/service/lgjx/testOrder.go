@@ -820,7 +820,7 @@ func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err erro
 		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
 			apiPath := "/jrapi/lg/lgResultPush"
 			var lgResultPush = jrclientrequest.LgResultPush{
-				OrderNo:             *order.OrderNo,
+				OrderNo:             *letter.OrderNo,
 				ElogNo:              *letter.ElogNo,
 				InsuranceName:       *letter.InsuranceName,
 				InsuranceCreditCode: *letter.InsuranceCreditCode,
@@ -881,63 +881,92 @@ func (testOrderService *TestOrderService) OpenLetter(order lgjx.Order) (err erro
 }
 
 func (testOrderService *TestOrderService) RePush(order lgjx.Order) (err error) {
-	if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
-		apiPath := "/jrapi/lg/lgResultPush"
-		var lgResultPush = jrclientrequest.LgResultPush{
-			OrderNo:             *order.OrderNo,
-			ElogNo:              *order.Letter.ElogNo,
-			InsuranceName:       *order.Letter.InsuranceName,
-			InsuranceCreditCode: *order.Letter.InsuranceCreditCode,
-			ElogOutDate:         *order.Letter.ElogOutDate,
-			ElogUrl:             global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *order.Letter.ElogUrl,
-			ElogEncryptUrl:      global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *order.Letter.ElogEncryptUrl + "&type=encrypt",
-			TenderDeposit:       *order.Letter.TenderDeposit,
-			InsureStartDate:     *order.Letter.InsureStartDate,
-			InsureEndDate:       *order.Letter.InsureEndDate,
-			InsureDay:           *order.Letter.InsureDay,
-			ValidateCode:        *order.Letter.ValidateCode,
-		}
-		req, err := lgjx2.GenJRRequest(lgResultPush)
-		if err != nil {
+	err = global.MustGetGlobalDBByDBName("lg-jx-test").Transaction(func(tx *gorm.DB) error {
+		var templateFile lgjx.File
+		if err = tx.Model(&lgjx.File{}).Where("id = ?", *order.Project.Template.TemplateFileID).First(&templateFile).Error; err != nil {
 			return err
 		}
-		var res jrresponse.JRResponse
-		client := resty.New()
-		resp, err := client.R().
-			SetBody(&req).
-			SetResult(&res).
-			Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
-		if err != nil {
+		var letter lgjx.Letter
+		var file lgjx.File
+		var encryptFile lgjx.File
+		if letter, file, encryptFile, err = lgjx2.OpenLetter(order, templateFile, true); err != nil {
 			return err
 		}
-		if resp.StatusCode() == http.StatusOK {
-			if res.Code != 0 {
-				err := errors.New(res.Msg)
-				global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
-				return err
-			} else {
-				byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
-				if err != nil {
-					return err
-				}
-				jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
-				if err != nil {
-					return err
-				}
-				var resData jrclientresponse.Response
-				err = json.Unmarshal([]byte(jsonData), &resData)
-				if err != nil {
-					return err
-				}
-				if resData.ReceiveResult != "success" {
-					global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
-					return errors.New("接收结果不为success")
-				}
+		if err = tx.Create(&file).Error; err != nil {
+			return err
+		}
+		if err = tx.Create(&encryptFile).Error; err != nil {
+			return err
+		}
+		letter.ElogFileID = &file.ID
+		letter.ElogEncryptFileID = &encryptFile.ID
+		if err = tx.Create(&letter).Error; err != nil {
+			return err
+		}
+		order.LetterID = &letter.ID
+		if err = tx.Save(&order).Error; err != nil {
+			return err
+		}
+		if global.GVA_CONFIG.Insurance.JRAPIDomainTest != "" {
+			apiPath := "/jrapi/lg/lgResultPush"
+			var lgResultPush = jrclientrequest.LgResultPush{
+				OrderNo:             *letter.OrderNo,
+				ElogNo:              *letter.ElogNo,
+				InsuranceName:       *letter.InsuranceName,
+				InsuranceCreditCode: *letter.InsuranceCreditCode,
+				ElogOutDate:         *letter.ElogOutDate,
+				ElogUrl:             global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *letter.ElogUrl,
+				ElogEncryptUrl:      global.GVA_CONFIG.Insurance.APIDoaminTest + "/letterFileDownload?elog=" + *letter.ElogEncryptUrl + "&type=encrypt",
+				TenderDeposit:       *letter.TenderDeposit,
+				InsureStartDate:     *letter.InsureStartDate,
+				InsureEndDate:       *letter.InsureEndDate,
+				InsureDay:           *letter.InsureDay,
+				ValidateCode:        *letter.ValidateCode,
 			}
-		} else {
-			return errors.New("交易中心响应失败")
+			req, err := lgjx2.GenJRRequest(lgResultPush)
+			if err != nil {
+				return err
+			}
+			var res jrresponse.JRResponse
+			client := resty.New()
+			resp, err := client.R().
+				SetBody(&req).
+				SetResult(&res).
+				Post(global.GVA_CONFIG.Insurance.JRAPIDomainTest + apiPath)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode() == http.StatusOK {
+				if res.Code != 0 {
+					err := errors.New(res.Msg)
+					global.GVA_LOG.Error("调用"+apiPath+"失败", zap.Error(err))
+					return err
+				} else {
+					byteEncryptData, err := base64.StdEncoding.DecodeString(res.Data)
+					if err != nil {
+						return err
+					}
+					jsonData, err := lgjx2.Sm4Decrypt(byteEncryptData)
+					if err != nil {
+						return err
+					}
+					var resData jrclientresponse.Response
+					err = json.Unmarshal([]byte(jsonData), &resData)
+					if err != nil {
+						return err
+					}
+					if resData.ReceiveResult != "success" {
+						global.GVA_LOG.Error("调用"+apiPath+"结果不为success", zap.Error(err))
+						return errors.New("接收结果不为success")
+					}
+				}
+			} else {
+				return errors.New("交易中心响应失败")
+			}
 		}
-	}
+
+		return nil
+	})
 	return err
 }
 
