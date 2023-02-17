@@ -60,30 +60,34 @@
         <el-button size="small" type="success" icon="document" @click="exportExcel">导出excel</el-button>
       </div>
       <el-table ref="multipleTable" style="width: 100%" :data="tableData" row-key="ID" border size="small" table-layout="fixed" @selection-change="handleSelectionChange">
-        <el-table-column align="center" label="订单编号" prop="orderNo" min-width="160px" />
+        <el-table-column align="center" label="订单编号" prop="orderNo" min-width="120px" />
         <el-table-column align="center" label="产品类型" min-width="80px">
           <template #default="scope">{{ productType(scope.row.apply.productType) }}</template>
         </el-table-column>
         <el-table-column align="center" label="标段名称" prop="apply.projectName" min-width="300px" />
-        <el-table-column align="center" label="开标时间" prop="apply.openBeginDate" min-width="160px" />
+        <el-table-column align="center" label="开标时间" prop="apply.openBeginDate" min-width="100px" />
         <el-table-column align="center" label="标段编号" prop="apply.projectNo" min-width="160px" />
         <el-table-column align="center" label="受益方名称" prop="apply.insuredName" min-width="280px" />
         <el-table-column align="center" label="担保金额" min-width="120px">
           <template #default="scope">{{ amount(scope.row.apply.tenderDeposit) }}</template>
         </el-table-column>
         <el-table-column align="center" label="所属市" prop="project.projectCity" min-width="120px" />
-        <el-table-column align="center" label="保函格式名称" prop="apply.elogTemplateName" min-width="120px" />
+        <el-table-column align="center" label="保函格式名称" prop="project.template.templateName" min-width="120px" />
         <el-table-column align="center" label="申请企业" prop="apply.insureName" min-width="280px" />
-        <el-table-column align="center" label="申请时间" min-width="160px">
+        <el-table-column align="center" label="申请时间" min-width="100px">
           <template #default="scope">{{ date(scope.row.apply.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="center" label="审核时间" prop="apply.auditDate" min-width="160px" />
+        <el-table-column align="center" label="审核时间" min-width="100px">
+          <template #default="scope">{{ date(scope.row.apply.auditDate) }}</template>
+        </el-table-column>
         <el-table-column align="center" label="审核状态" min-width="80px">
           <template #default="scope">
             <el-tag :type="scope.row.revoke!=null?'info':auditType(scope.row.apply.auditStatus)" effect="dark" round>{{ scope.row.revoke != null ? '已撤' : auditStatus(scope.row.apply.auditStatus) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column align="center" label="付款时间" prop="pay.payTime" min-width="160px" />
+        <el-table-column align="center" label="付款时间" min-width="100px">
+          <template #default="scope">{{ scope.row.pay?date(scope.row.pay.payTime):'' }}</template>
+        </el-table-column>
         <el-table-column align="center" label="付款金额" min-width="120px">
           <template #default="scope">{{ scope.row.pay != null ? amount(scope.row.pay.payAmount) : '' }}</template>
         </el-table-column>
@@ -92,8 +96,8 @@
             <el-tag :type="scope.row.pay != null ? 'success' : 'info'" effect="dark" round>{{ scope.row.pay != null ? "已付" : "未付" }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column align="center" label="开函时间" min-width="160px">
-          <template #default="scope">{{ scope.row.letter !== null ? date(scope.row.letter.CreatedAt) : '' }}</template>
+        <el-table-column align="center" label="开函时间" min-width="100px">
+          <template #default="scope">{{ scope.row.letter ? date(scope.row.letter.CreatedAt) : '' }}</template>
         </el-table-column>
         <el-table-column align="center" label="订单状态" min-width="80px">
           <template #default="scope">
@@ -113,9 +117,9 @@
       </el-table>
       <el-card shadow="always" style="float: left">
         累计成功(未理赔，未退函)担保金额为
-        <span style="color: red">{{ statisticData.totalGuaranteeAmount.toFixed(2) }}</span>
+        <span style="color: red">{{ statisticData.totalGuaranteeAmount.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') }}</span>
         元，收取保函费用为
-        <span style="color: red">{{ statisticData.totalElogAmount.toFixed(2) }}</span>
+        <span style="color: red">{{ statisticData.totalElogAmount.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,') }}</span>
         元
       </el-card>
       <div class="gva-pagination">
