@@ -145,7 +145,14 @@ func (testOrderService *TestOrderService) GetOrderInfoList(info lgjxReq.OrderSea
 		return
 	}
 
-	err = db.Limit(limit).Preload(clause.Associations).Preload("Project.Template").Order("order.created_at desc").Offset(offset).Find(&orders).Error
+	err = db.Limit(limit).
+		Preload(clause.Associations).
+		Preload("Project.Template").
+		Preload("Letter.ElogFile").
+		Preload("Letter.ElogEncryptFile").
+		Preload("Delay.ElogFile").
+		Preload("Delay.ElogEncryptFile").
+		Order("order.created_at desc").Offset(offset).Find(&orders).Error
 	return orders, total, err
 }
 
@@ -979,7 +986,8 @@ func (testOrderService *TestOrderService) RePush(order lgjx.Order) (err error) {
 func (testOrderService *TestOrderService) GetOrderStatisticData() (orderStatisticData nonmigrate.OrderStatisticData, err error) {
 	db := global.MustGetGlobalDBByDBName("lg-jx-test").Model(&lgjx.Order{})
 	db.Joins("Pay").Joins("Letter").Joins("Refund").Joins("Claim")
-	//未理赔，未退函
+	//未撤函，未理赔，未退函
+	db = db.Where("order.revoke_id is null")
 	db = db.Where("order.claim_id is null")
 	db = db.Where("order.refund_id is null")
 

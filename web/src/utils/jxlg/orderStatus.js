@@ -1,5 +1,7 @@
 export const orderStatus = (order) => {
-  if (order.logout != null) {
+  if (order.revoke != null) {
+    return '已撤'
+  } else if (order.logout != null) {
     return '销函'
   } else if (order.claim != null && order.claim.auditStatus === 2) {
     return '理赔'
@@ -15,7 +17,9 @@ export const orderStatus = (order) => {
 }
 
 export const orderStatusType = (order) => {
-  if (order.logout != null) {
+  if (order.revoke != null) {
+    return 'warning'
+  } else if (order.logout != null) {
     return 'info'
   } else if (order.claim != null && order.claim.auditStatus === 2) {
     return 'danger'

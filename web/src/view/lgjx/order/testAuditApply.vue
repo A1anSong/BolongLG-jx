@@ -123,6 +123,54 @@
         table-layout="fixed"
         @selection-change="handleSelectionChange"
       >
+        <el-table-column align="center" label="操作" min-width="200" fixed="left">
+          <template #default="scope">
+            <el-tag
+              v-if="scope.row.revoke"
+              type="warning"
+              effect="dark"
+              size="large"
+            >已撤单
+            </el-tag>
+            <el-button
+              v-if="scope.row.revoke === null && scope.row.apply.auditStatus===1 && scope.row.project"
+              type="success"
+              icon="select"
+              size="small"
+              @click="approveApplyFunc(scope.row)"
+            >通过
+            </el-button>
+            <el-button
+              v-if="scope.row.revoke === null &&scope.row.apply.auditStatus===1 && scope.row.project"
+              type="danger"
+              icon="closeBold"
+              size="small"
+              @click="rejectApplyFunc(scope.row)"
+            >拒绝
+            </el-button>
+            <el-tag
+              v-if="scope.row.revoke === null && scope.row.apply.auditStatus===2"
+              type="success"
+              effect="dark"
+              size="large"
+            >已审批通过
+            </el-tag>
+            <el-tag
+              v-if="scope.row.revoke === null && scope.row.apply.auditStatus===3"
+              type="danger"
+              effect="dark"
+              size="large"
+            >已审批拒绝
+            </el-tag>
+            <el-tag
+              v-if="scope.row.revoke === null && scope.row.project === null && scope.row.apply.auditStatus===1"
+              type="info"
+              effect="dark"
+              size="large"
+            >待绑定项目才后可审核
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column type="expand" label="详情">
           <template #default="scope">
             <div>
@@ -322,11 +370,11 @@
           <el-table-column align="center" label="审核状态" min-width="80px">
             <template #default="scope">
               <el-tag
-                :type="scope.row.revoke!=null?'info':auditType(scope.row.apply.auditStatus)"
+                :type="auditType(scope.row.apply.auditStatus)"
                 effect="dark"
                 round
               >
-                {{ scope.row.revoke != null ? '已撤' : auditStatus(scope.row.apply.auditStatus) }}
+                {{ auditStatus(scope.row.apply.auditStatus) }}
               </el-tag>
             </template>
           </el-table-column>
@@ -366,47 +414,6 @@
         <el-table-column align="center" label="推荐人">
           <el-table-column align="center" label="工号" prop="employeeNo" min-width="120px" />
           <el-table-column align="center" label="业务员" prop="employeeNo" min-width="120px" />
-        </el-table-column>
-        <el-table-column align="center" label="操作" min-width="200" fixed="right">
-          <template #default="scope">
-            <el-button
-              v-if="scope.row.apply.auditStatus===1 && scope.row.project"
-              type="success"
-              icon="select"
-              size="small"
-              @click="approveApplyFunc(scope.row)"
-            >通过
-            </el-button>
-            <el-button
-              v-if="scope.row.apply.auditStatus===1 && scope.row.project"
-              type="danger"
-              icon="closeBold"
-              size="small"
-              @click="rejectApplyFunc(scope.row)"
-            >拒绝
-            </el-button>
-            <el-tag
-              v-if="scope.row.apply.auditStatus===2"
-              type="success"
-              effect="dark"
-              size="large"
-            >已审批通过
-            </el-tag>
-            <el-tag
-              v-if="scope.row.apply.auditStatus===3"
-              type="danger"
-              effect="dark"
-              size="large"
-            >已审批拒绝
-            </el-tag>
-            <el-tag
-              v-if="scope.row.project === null && scope.row.apply.auditStatus===1"
-              type="info"
-              effect="dark"
-              size="large"
-            >待绑定项目才后可审核
-            </el-tag>
-          </template>
         </el-table-column>
       </el-table>
       <div class="gva-pagination">

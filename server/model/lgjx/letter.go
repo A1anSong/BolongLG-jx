@@ -16,11 +16,11 @@ type Letter struct {
 	InsuranceCreditCode *string  `json:"insuranceCreditCode" form:"insuranceCreditCode" gorm:"type:varchar(18);"`
 	ElogOutDate         *string  `json:"elogOutDate" form:"elogOutDate" gorm:"type:varchar(19);"`
 	ElogUrl             *string  `json:"elogUrl" form:"elogUrl" gorm:"type:varchar(256);"`
-	ElogFileID          *uint    `json:"-" form:"-"`
-	ElogFile            *File    `json:"-" form:"-"`
+	ElogFileID          *uint    `json:"elogFileID" form:"elogFileID"`
+	ElogFile            *File    `json:"elogFile" form:"elogFile"`
 	ElogEncryptUrl      *string  `json:"elogEncryptUrl" form:"elogEncryptUrl" gorm:"type:varchar(256);"`
-	ElogEncryptFileID   *uint    `json:"-" form:"-"`
-	ElogEncryptFile     *File    `json:"-" form:"-"`
+	ElogEncryptFileID   *uint    `json:"elogEncryptFileID" form:"elogEncryptFileID"`
+	ElogEncryptFile     *File    `json:"elogEncryptFile" form:"elogEncryptFile"`
 	TenderDeposit       *float64 `json:"tenderDeposit" form:"tenderDeposit"`
 	InsureStartDate     *string  `json:"insureStartDate" form:"insureStartDate" gorm:"type:varchar(19);"`
 	InsureEndDate       *string  `json:"insureEndDate" form:"insureEndDate" gorm:"type:varchar(19);"`

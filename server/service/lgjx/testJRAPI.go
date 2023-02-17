@@ -62,8 +62,10 @@ func (testJRAPIService *TestJRAPIService) ApplyOrder(reApply jrrequest.JRAPIAppl
 			return errors.New("相同订单和开函申请已经存在")
 		}
 
+		isRepushed := false
 		order := &lgjx.Order{
-			OrderNo: reApply.OrderNo,
+			OrderNo:    reApply.OrderNo,
+			IsRepushed: &isRepushed,
 		}
 		if err = tx.Create(&order).Error; err != nil {
 			return errors.New("创建订单失败")

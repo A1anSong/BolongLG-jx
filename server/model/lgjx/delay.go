@@ -31,11 +31,11 @@ type Delay struct {
 	AuditOpinion      *string  `json:"auditOpinion" form:"auditOpinion" gorm:"type:varchar(512);"`
 	AuditDate         *string  `json:"auditDate" form:"auditDate" gorm:"type:varchar(19);"`
 	ElogUrl           *string  `json:"elogUrl" form:"elogUrl" gorm:"type:varchar(256);"`
-	ElogFileID        *uint    `json:"-" form:"-"`
-	ElogFile          *File    `json:"-" form:"-"`
+	ElogFileID        *uint    `json:"elogFileID" form:"elogFileID"`
+	ElogFile          *File    `json:"elogFile" form:"elogFile"`
 	ElogEncryptUrl    *string  `json:"elogEncryptUrl" form:"elogEncryptUrl" gorm:"type:varchar(256);"`
-	ElogEncryptFileID *uint    `json:"-" form:"-"`
-	ElogEncryptFile   *File    `json:"-" form:"-"`
+	ElogEncryptFileID *uint    `json:"elogEncryptFileID" form:"elogEncryptFileID"`
+	ElogEncryptFile   *File    `json:"elogEncryptFile" form:"elogEncryptFile"`
 	InsureStartDate   *string  `json:"insureStartDate" form:"insureStartDate" gorm:"type:varchar(19);"`
 	InsureEndDate     *string  `json:"insureEndDate" form:"insureEndDate" gorm:"type:varchar(19);"`
 	InsureDay         *int64   `json:"insureDay" form:"insureDay"`
