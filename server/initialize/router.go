@@ -57,7 +57,8 @@ func Routers() *gin.Engine {
 		jrapiTestRouter.InitJRAPIRouter(PublicGroup)
 	}
 	PrivateGroup := Router.Group("")
-	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	//PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	PrivateGroup.Use(middleware.JWTAuth())
 	{
 		systemRouter.InitApiRouter(PrivateGroup)                 // 注册功能api路由
 		systemRouter.InitJwtRouter(PrivateGroup)                 // jwt相关路由
